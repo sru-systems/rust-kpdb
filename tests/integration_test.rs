@@ -65,8 +65,40 @@ fn test_database_open_can_read_saved_database() {
 
 #[test]
 fn test_key_file_open_with_binary_key_returns_correct_data() {
-    let key = [122, 53, 46, 141, 234, 133, 167, 150, 165, 177, 249, 139, 78, 92, 142, 101, 112,
-               204, 228, 182, 96, 171, 130, 14, 37, 103, 198, 32, 239, 13, 55, 244];
+    let key = [
+        122,
+        53,
+        46,
+        141,
+        234,
+        133,
+        167,
+        150,
+        165,
+        177,
+        249,
+        139,
+        78,
+        92,
+        142,
+        101,
+        112,
+        204,
+        228,
+        182,
+        96,
+        171,
+        130,
+        14,
+        37,
+        103,
+        198,
+        32,
+        239,
+        13,
+        55,
+        244,
+    ];
     let mut file = File::open("data/key-binary.key").unwrap();
     let key_file = KeyFile::open(&mut file).unwrap();
     assert_eq!(key_file.key.unsecure(), key);
@@ -75,8 +107,40 @@ fn test_key_file_open_with_binary_key_returns_correct_data() {
 
 #[test]
 fn test_key_file_open_with_hex_key_returns_correct_data() {
-    let key = [49, 168, 170, 217, 214, 119, 198, 220, 133, 57, 52, 176, 162, 227, 165, 197, 147,
-               3, 41, 172, 83, 62, 174, 194, 56, 22, 175, 241, 26, 99, 190, 24];
+    let key = [
+        49,
+        168,
+        170,
+        217,
+        214,
+        119,
+        198,
+        220,
+        133,
+        57,
+        52,
+        176,
+        162,
+        227,
+        165,
+        197,
+        147,
+        3,
+        41,
+        172,
+        83,
+        62,
+        174,
+        194,
+        56,
+        22,
+        175,
+        241,
+        26,
+        99,
+        190,
+        24,
+    ];
     let mut file = File::open("data/key-hex.key").unwrap();
     let key_file = KeyFile::open(&mut file).unwrap();
     assert_eq!(key_file.key.unsecure(), key);
@@ -85,8 +149,40 @@ fn test_key_file_open_with_hex_key_returns_correct_data() {
 
 #[test]
 fn test_key_file_open_with_xml_key_returns_correct_data() {
-    let key = [159, 55, 28, 192, 249, 89, 40, 15, 201, 29, 48, 116, 39, 67, 216, 110, 153, 237,
-               153, 27, 164, 3, 57, 108, 231, 76, 202, 121, 22, 127, 130, 199];
+    let key = [
+        159,
+        55,
+        28,
+        192,
+        249,
+        89,
+        40,
+        15,
+        201,
+        29,
+        48,
+        116,
+        39,
+        67,
+        216,
+        110,
+        153,
+        237,
+        153,
+        27,
+        164,
+        3,
+        57,
+        108,
+        231,
+        76,
+        202,
+        121,
+        22,
+        127,
+        130,
+        199,
+    ];
     let mut file = File::open("data/key-xml.key").unwrap();
     let key_file = KeyFile::open(&mut file).unwrap();
     assert_eq!(key_file.key.unsecure(), key);
