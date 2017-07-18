@@ -47,8 +47,40 @@ mod tests {
 
     #[test]
     fn test_new_returns_correct_instance() {
-        let array = [31, 185, 158, 42, 166, 26, 165, 152, 237, 134, 43, 169, 20, 151, 166, 28,
-                     245, 243, 54, 245, 102, 218, 172, 154, 46, 41, 255, 223, 243, 90, 2, 117];
+        let array = [
+            31,
+            185,
+            158,
+            42,
+            166,
+            26,
+            165,
+            152,
+            237,
+            134,
+            43,
+            169,
+            20,
+            151,
+            166,
+            28,
+            245,
+            243,
+            54,
+            245,
+            102,
+            218,
+            172,
+            154,
+            46,
+            41,
+            255,
+            223,
+            243,
+            90,
+            2,
+            117,
+        ];
         let expected = MasterKey::secure(array);
         let composite_key = CompositeKey::from_password("secret");
         let rounds = TransformRounds(10);
@@ -61,8 +93,40 @@ mod tests {
 
     #[test]
     fn test_unsecure_inverses_secure() {
-        let array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-                     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+        let array = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+        ];
         let expected = array.clone();
         let actual = MasterKey::unsecure(&MasterKey::secure(array));
         assert_eq!(actual, expected);

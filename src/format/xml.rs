@@ -64,7 +64,7 @@ pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Ve
 pub fn read_binary_value_opt<R: Read>(
     reader: &mut EventReader<R>,
     cipher: &mut Salsa20,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<BinaryValue>> {
     let ref_value = search_attr_value(attrs, "ref");
     let protected = try!(get_protected_attr_value(reader, attrs));
@@ -130,8 +130,9 @@ pub fn read_color_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Col
 }
 
 /// Attempts to read an optional custom icon UUID.
-pub fn read_custom_icon_uuid_opt<R: Read>(reader: &mut EventReader<R>)
-    -> Result<Option<CustomIconUuid>> {
+pub fn read_custom_icon_uuid_opt<R: Read>(
+    reader: &mut EventReader<R>,
+) -> Result<Option<CustomIconUuid>> {
     match try!(read_uuid_opt(reader)) {
         Some(uuid) => Ok(Some(CustomIconUuid(uuid))),
         None => Ok(None),
@@ -153,8 +154,9 @@ pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<Ut
 
 /// Creates a new read error result.
 pub fn read_err<S, R, X>(reader: &mut EventReader<R>, msg: S) -> Result<X>
-    where R: Read,
-          S: Into<String>
+where
+    R: Read,
+    S: Into<String>,
 {
     let msg: String = msg.into();
     let pos = reader.position();
@@ -250,7 +252,7 @@ pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<St
 pub fn read_string_value_opt<R: Read>(
     reader: &mut EventReader<R>,
     cipher: &mut Salsa20,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<StringValue>> {
     let pmem = try!(get_protect_in_memory_attr_value(reader, attrs));
     let pxml = try!(get_protected_attr_value(reader, attrs));
@@ -314,7 +316,7 @@ pub fn write_binary<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Resul
 pub fn write_binary_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &[u8]
+    value: &[u8],
 ) -> Result<()> {
     write_string_tag(writer, tag, &base64::encode(&value))
 }
@@ -323,7 +325,7 @@ pub fn write_binary_tag<W: Write>(
 pub fn write_bool_opt_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &Option<bool>
+    value: &Option<bool>,
 ) -> Result<()> {
     match *value {
         Some(false) => write_string_tag(writer, tag, &String::from("false")),
@@ -341,7 +343,7 @@ pub fn write_bool_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str, value: b
 pub fn write_color_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &Option<Color>
+    value: &Option<Color>,
 ) -> Result<()> {
     match *value {
         Some(ref c) => write_string_tag(writer, tag, &c.to_hex_string()),
@@ -353,7 +355,7 @@ pub fn write_color_tag<W: Write>(
 pub fn write_custom_icon_uuid_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &Option<CustomIconUuid>
+    value: &Option<CustomIconUuid>,
 ) -> Result<()> {
     match *value {
         Some(ref u) => write_uuid_tag(writer, tag, &u.0),
@@ -365,7 +367,7 @@ pub fn write_custom_icon_uuid_tag<W: Write>(
 pub fn write_datetime_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &DateTime<Utc>
+    value: &DateTime<Utc>,
 ) -> Result<()> {
     write_string_tag(writer, tag, &format!("{:?}", value))
 }
@@ -410,7 +412,7 @@ pub fn write_string<W: Write>(writer: &mut EventWriter<W>, value: &String) -> Re
 pub fn write_string_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &String
+    value: &String,
 ) -> Result<()> {
     try!(write_start_tag(writer, tag));
     try!(write_string(writer, value));
@@ -425,7 +427,7 @@ pub fn write_uuid_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str, uuid: &U
 
 fn get_protect_in_memory_attr_value<R: Read>(
     reader: &mut EventReader<R>,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match search_attr_value(attrs, "protectinmemory") {
         Some(string) => {
@@ -440,7 +442,7 @@ fn get_protect_in_memory_attr_value<R: Read>(
 
 fn get_protected_attr_value<R: Read>(
     reader: &mut EventReader<R>,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match search_attr_value(attrs, "protected") {
         Some(string) => {

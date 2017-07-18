@@ -36,10 +36,12 @@ pub fn write<W: Write>(
     writer: &mut W,
     db: &Database,
     hash: &HeaderHash,
-    key: &StreamKey
+    key: &StreamKey,
 ) -> Result<()> {
     let mut cipher = salsa20::new_cipher(key);
-    let config = EmitterConfig::new().perform_indent(true).indent_string("\t");
+    let config = EmitterConfig::new().perform_indent(true).indent_string(
+        "\t",
+    );
 
     {
         let mut writer = EventWriter::new_with_config(writer, config);
@@ -51,7 +53,7 @@ pub fn write<W: Write>(
 
 fn write_association_section<W: Write>(
     writer: &mut EventWriter<W>,
-    assoc: &Association
+    assoc: &Association,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ASSOCIATION_TAG));
     try!(xml::write_string_tag(writer, kdb2::KEYSTROKE_SEQUENCE_TAG, &assoc.keystroke_sequence));
@@ -61,9 +63,11 @@ fn write_association_section<W: Write>(
 
 fn write_auto_type_section<W: Write>(writer: &mut EventWriter<W>, entry: &Entry) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::AUTO_TYPE_TAG));
-    try!(xml::write_i32_tag(writer,
-                            kdb2::DATA_TRANSFER_OBFUSCATION_TAG,
-                            entry.auto_type_obfuscation.to_i32()));
+    try!(xml::write_i32_tag(
+        writer,
+        kdb2::DATA_TRANSFER_OBFUSCATION_TAG,
+        entry.auto_type_obfuscation.to_i32(),
+    ));
     try!(xml::write_string_tag(writer, kdb2::DEFAULT_SEQUENCE_TAG, &entry.auto_type_def_sequence));
     try!(xml::write_bool_tag(writer, kdb2::ENABLED_TAG, entry.auto_type_enabled));
 
@@ -77,7 +81,7 @@ fn write_binary_section<W: Write>(
     writer: &mut EventWriter<W>,
     cipher: &mut Salsa20,
     key: &BinaryKey,
-    value: &BinaryValue
+    value: &BinaryValue,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::BINARY_TAG));
     try!(xml::write_start_tag(writer, kdb2::KEY_TAG));
@@ -112,7 +116,7 @@ fn write_binary_section<W: Write>(
 
 fn write_binaries_section<W: Write>(
     writer: &mut EventWriter<W>,
-    binaries: &BinariesMap
+    binaries: &BinariesMap,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::BINARIES_TAG));
     for (id, data) in binaries {
@@ -128,7 +132,7 @@ fn write_binaries_section<W: Write>(
 
 fn write_custom_data_section<W: Write>(
     writer: &mut EventWriter<W>,
-    data: &CustomDataMap
+    data: &CustomDataMap,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::CUSTOM_DATA_TAG));
     for (key, value) in data {
@@ -140,7 +144,7 @@ fn write_custom_data_section<W: Write>(
 fn write_custom_data_item_section<W: Write>(
     writer: &mut EventWriter<W>,
     key: &String,
-    value: &String
+    value: &String,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ITEM_TAG));
     try!(xml::write_string_tag(writer, kdb2::KEY_TAG, key));
@@ -150,7 +154,7 @@ fn write_custom_data_item_section<W: Write>(
 
 fn write_custom_icons_section<W: Write>(
     writer: &mut EventWriter<W>,
-    icons: &CustomIconsMap
+    icons: &CustomIconsMap,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::CUSTOM_ICONS_TAG));
     for (uuid, icon) in icons {
@@ -162,7 +166,7 @@ fn write_custom_icons_section<W: Write>(
 fn write_custom_icon_section<W: Write>(
     writer: &mut EventWriter<W>,
     uuid: &CustomIconUuid,
-    icon: &Vec<u8>
+    icon: &Vec<u8>,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ICON_TAG));
     try!(xml::write_uuid_tag(writer, kdb2::UUID_TAG, &uuid.0));
@@ -175,15 +179,17 @@ fn write_entry_section<W: Write>(
     db: &Database,
     cipher: &mut Salsa20,
     entry: &Entry,
-    state: EntryState
+    state: EntryState,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ENTRY_TAG));
     try!(xml::write_uuid_tag(writer, kdb2::UUID_TAG, &entry.uuid.0));
     try!(write_auto_type_section(writer, entry));
     try!(xml::write_color_tag(writer, kdb2::BACKGROUND_COLOR_TAG, &entry.background_color));
-    try!(xml::write_custom_icon_uuid_tag(writer,
-                                         kdb2::CUSTOM_ICON_UUID_TAG,
-                                         &entry.custom_icon_uuid));
+    try!(xml::write_custom_icon_uuid_tag(
+        writer,
+        kdb2::CUSTOM_ICON_UUID_TAG,
+        &entry.custom_icon_uuid,
+    ));
     try!(xml::write_color_tag(writer, kdb2::FOREGROUND_COLOR_TAG, &entry.foreground_color));
     try!(xml::write_i32_tag(writer, kdb2::ICON_ID_TAG, entry.icon.to_i32()));
     try!(xml::write_string_tag(writer, kdb2::OVERRIDE_URL_TAG, &entry.override_url));
@@ -208,20 +214,24 @@ fn write_group_section<W: Write>(
     writer: &mut EventWriter<W>,
     db: &Database,
     cipher: &mut Salsa20,
-    group: &Group
+    group: &Group,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::GROUP_TAG));
     try!(xml::write_uuid_tag(writer, kdb2::UUID_TAG, &group.uuid.0));
-    try!(xml::write_string_tag(writer,
-                               kdb2::DEFAULT_AUTO_TYPE_SEQUENCE_TAG,
-                               &group.def_auto_type_sequence));
+    try!(xml::write_string_tag(
+        writer,
+        kdb2::DEFAULT_AUTO_TYPE_SEQUENCE_TAG,
+        &group.def_auto_type_sequence,
+    ));
     try!(xml::write_bool_opt_tag(writer, kdb2::ENABLE_AUTO_TYPE_TAG, &group.enable_auto_type));
     try!(xml::write_bool_opt_tag(writer, kdb2::ENABLE_SEARCHING_TAG, &group.enable_searching));
     try!(xml::write_i32_tag(writer, kdb2::ICON_ID_TAG, group.icon.to_i32()));
     try!(xml::write_bool_tag(writer, kdb2::IS_EXPANDED_TAG, group.is_expanded));
-    try!(xml::write_uuid_tag(writer,
-                             kdb2::LAST_TOP_VISIBLE_ENTRY_TAG,
-                             &group.last_top_visible_entry.0));
+    try!(xml::write_uuid_tag(
+        writer,
+        kdb2::LAST_TOP_VISIBLE_ENTRY_TAG,
+        &group.last_top_visible_entry.0,
+    ));
     try!(xml::write_string_tag(writer, kdb2::NAME_TAG, &group.name));
     try!(xml::write_string_tag(writer, kdb2::NOTES_TAG, &group.notes));
     try!(write_times_section(writer, group));
@@ -250,7 +260,7 @@ fn write_history_section<W: Write>(
     writer: &mut EventWriter<W>,
     db: &Database,
     cipher: &mut Salsa20,
-    entries: &Option<&Vec<Entry>>
+    entries: &Option<&Vec<Entry>>,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::HISTORY_TAG));
     match *entries {
@@ -268,7 +278,7 @@ fn write_kee_pass_file_section<W: Write>(
     writer: &mut EventWriter<W>,
     db: &Database,
     hash: &HeaderHash,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::KEE_PASS_FILE_TAG));
     try!(write_meta_section(writer, db, hash));
@@ -278,7 +288,7 @@ fn write_kee_pass_file_section<W: Write>(
 
 fn write_memory_protection_section<W: Write>(
     writer: &mut EventWriter<W>,
-    db: &Database
+    db: &Database,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::MEMORY_PROTECTION_TAG));
     try!(xml::write_bool_tag(writer, kdb2::PROTECT_NOTES_TAG, db.protect_notes));
@@ -292,7 +302,7 @@ fn write_memory_protection_section<W: Write>(
 fn write_meta_section<W: Write>(
     writer: &mut EventWriter<W>,
     db: &Database,
-    hash: &HeaderHash
+    hash: &HeaderHash,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::META_TAG));
     try!(write_binaries_section(writer, &db.binaries));
@@ -300,32 +310,44 @@ fn write_meta_section<W: Write>(
     try!(write_custom_data_section(writer, &db.custom_data));
     try!(write_custom_icons_section(writer, &db.custom_icons));
     try!(xml::write_string_tag(writer, kdb2::DATABASE_DESCRIPTION_TAG, &db.description));
-    try!(xml::write_datetime_tag(writer,
-                                 kdb2::DATABASE_DESCRIPTION_CHANGED_TAG,
-                                 &db.description_changed));
+    try!(xml::write_datetime_tag(
+        writer,
+        kdb2::DATABASE_DESCRIPTION_CHANGED_TAG,
+        &db.description_changed,
+    ));
     try!(xml::write_string_tag(writer, kdb2::DATABASE_NAME_TAG, &db.name));
     try!(xml::write_datetime_tag(writer, kdb2::DATABASE_NAME_CHANGED_TAG, &db.name_changed));
     try!(xml::write_string_tag(writer, kdb2::DEFAULT_USERNAME_TAG, &db.def_username));
-    try!(xml::write_datetime_tag(writer,
-                                 kdb2::DEFAULT_USERNAME_CHANGED_TAG,
-                                 &db.def_username_changed));
-    try!(xml::write_uuid_tag(writer,
-                             kdb2::ENTRY_TEMPLATES_GROUP_TAG,
-                             &db.entry_templates_group_uuid.0));
-    try!(xml::write_datetime_tag(writer,
-                                 kdb2::ENTRY_TEMPLATES_GROUP_CHANGED_TAG,
-                                 &db.entry_templates_group_changed));
+    try!(xml::write_datetime_tag(
+        writer,
+        kdb2::DEFAULT_USERNAME_CHANGED_TAG,
+        &db.def_username_changed,
+    ));
+    try!(xml::write_uuid_tag(
+        writer,
+        kdb2::ENTRY_TEMPLATES_GROUP_TAG,
+        &db.entry_templates_group_uuid.0,
+    ));
+    try!(xml::write_datetime_tag(
+        writer,
+        kdb2::ENTRY_TEMPLATES_GROUP_CHANGED_TAG,
+        &db.entry_templates_group_changed,
+    ));
     try!(xml::write_string_tag(writer, kdb2::GENERATOR_TAG, &String::from(common::GENERATOR_NAME)));
     try!(xml::write_binary_tag(writer, kdb2::HEADER_HASH_TAG, &hash.0));
     try!(xml::write_i32_tag(writer, kdb2::HISTORY_MAX_ITEMS_TAG, db.history_max_items));
     try!(xml::write_i32_tag(writer, kdb2::HISTORY_MAX_SIZE_TAG, db.history_max_size));
     try!(xml::write_uuid_tag(writer, kdb2::LAST_SELECTED_GROUP_TAG, &db.last_selected_group.0));
-    try!(xml::write_uuid_tag(writer,
-                             kdb2::LAST_TOP_VISIBLE_GROUP_TAG,
-                             &db.last_top_visible_group.0));
-    try!(xml::write_i32_tag(writer,
-                            kdb2::MAINTENANCE_HISTORY_DAYS_TAG,
-                            db.maintenance_history_days));
+    try!(xml::write_uuid_tag(
+        writer,
+        kdb2::LAST_TOP_VISIBLE_GROUP_TAG,
+        &db.last_top_visible_group.0,
+    ));
+    try!(xml::write_i32_tag(
+        writer,
+        kdb2::MAINTENANCE_HISTORY_DAYS_TAG,
+        db.maintenance_history_days,
+    ));
     try!(xml::write_i32_tag(writer, kdb2::MASTER_KEY_CHANGE_FORCE_TAG, db.master_key_change_force));
     try!(xml::write_i32_tag(writer, kdb2::MASTER_KEY_CHANGE_REC_TAG, db.master_key_change_rec));
     try!(xml::write_datetime_tag(writer, kdb2::MASTER_KEY_CHANGED_TAG, &db.master_key_changed));
@@ -340,7 +362,7 @@ fn write_meta_section<W: Write>(
 fn write_root_section<W: Write>(
     writer: &mut EventWriter<W>,
     db: &Database,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ROOT_TAG));
     match db.group_uuid {
@@ -361,7 +383,7 @@ fn write_string_section<W: Write>(
     writer: &mut EventWriter<W>,
     cipher: &mut Salsa20,
     key: &StringKey,
-    value: &StringValue
+    value: &StringValue,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::STRING_TAG));
     try!(xml::write_string_tag(writer, kdb2::KEY_TAG, &key.to_string()));
@@ -384,8 +406,9 @@ fn write_string_section<W: Write>(
 }
 
 fn write_times_section<T, W>(writer: &mut EventWriter<W>, node: &T) -> Result<()>
-    where T: Times,
-          W: Write
+where
+    T: Times,
+    W: Write,
 {
     try!(xml::write_start_tag(writer, kdb2::TIMES_TAG));
     try!(xml::write_datetime_tag(writer, kdb2::CREATION_TIME_TAG, &node.creation_time()));

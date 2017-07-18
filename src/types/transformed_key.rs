@@ -31,7 +31,7 @@ impl TransformedKey {
     pub fn new(
         key: &CompositeKey,
         seed: &TransformSeed,
-        rounds: &TransformRounds
+        rounds: &TransformRounds,
     ) -> TransformedKey {
         let mut tmp_key = key.unsecure().clone();
         let mut output = [0u8; 32];
@@ -77,8 +77,40 @@ mod tests {
 
     #[test]
     fn test_new_returns_correct_instance() {
-        let array = [208, 2, 238, 193, 16, 181, 39, 109, 254, 40, 67, 20, 154, 21, 202, 174, 234,
-                     11, 183, 136, 22, 136, 58, 102, 52, 40, 129, 244, 194, 223, 211, 108];
+        let array = [
+            208,
+            2,
+            238,
+            193,
+            16,
+            181,
+            39,
+            109,
+            254,
+            40,
+            67,
+            20,
+            154,
+            21,
+            202,
+            174,
+            234,
+            11,
+            183,
+            136,
+            22,
+            136,
+            58,
+            102,
+            52,
+            40,
+            129,
+            244,
+            194,
+            223,
+            211,
+            108,
+        ];
         let expected = TransformedKey::secure(array);
         let key = CompositeKey::from_password("secret");
         let rounds = TransformRounds(10);
@@ -89,8 +121,40 @@ mod tests {
 
     #[test]
     fn test_unsecure_inverses_secure() {
-        let array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-                     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32];
+        let array = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+        ];
         let expected = array.clone();
         let actual = TransformedKey::unsecure(&TransformedKey::secure(array));
         assert_eq!(actual, expected);

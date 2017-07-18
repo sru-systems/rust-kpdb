@@ -21,7 +21,13 @@ pub fn decrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> 
 
     loop {
         let result = try!(cipher.decrypt(&mut read_buffer, &mut write_buffer, true));
-        output.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
+        output.extend(
+            write_buffer
+                .take_read_buffer()
+                .take_remaining()
+                .iter()
+                .map(|&i| i),
+        );
         match result {
             BufferResult::BufferUnderflow => break,
             BufferResult::BufferOverflow => {}
@@ -41,7 +47,13 @@ pub fn encrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> 
 
     loop {
         let result = try!(cipher.encrypt(&mut read_buffer, &mut write_buffer, true));
-        output.extend(write_buffer.take_read_buffer().take_remaining().iter().map(|&i| i));
+        output.extend(
+            write_buffer
+                .take_read_buffer()
+                .take_remaining()
+                .iter()
+                .map(|&i| i),
+        );
         match result {
             BufferResult::BufferUnderflow => break,
             BufferResult::BufferOverflow => {}

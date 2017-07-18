@@ -39,7 +39,8 @@ use types::XmlData;
 
 /// Attempts to read the database content from the reader.
 pub fn read<R>(reader: &mut R, composite_key: &CompositeKey) -> Result<(MetaData, XmlData)>
-    where R: Log + Read
+where
+    R: Log + Read,
 {
     let version = try!(read_version(reader));
     let mut comment: Option<Comment> = None;
@@ -113,8 +114,8 @@ pub fn read<R>(reader: &mut R, composite_key: &CompositeKey) -> Result<(MetaData
     let master_cipher = try!(get_header(master_cipher, kdb2::MASTER_CIPHER_HID));
     let master_iv = try!(get_header(master_iv, kdb2::MASTER_IV_HID));
     let master_seed = try!(get_header(master_seed, kdb2::MASTER_SEED_HID));
-    let protected_stream_key = try!(get_header(protected_stream_key,
-                                               kdb2::PROTECTED_STREAM_KEY_HID));
+    let protected_stream_key =
+        try!(get_header(protected_stream_key, kdb2::PROTECTED_STREAM_KEY_HID));
     let stream_cipher = try!(get_header(stream_cipher, kdb2::STREAM_CIPHER_HID));
     let stream_start_bytes = try!(get_header(stream_start_bytes, kdb2::STREAM_START_BYTES_HID));
     let transform_rounds = try!(get_header(transform_rounds, kdb2::TRANSFORM_ROUNDS_HID));

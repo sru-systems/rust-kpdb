@@ -100,11 +100,13 @@ mod tests {
     }
 
     fn get_test_tuples() -> Vec<(&'static str, StringKey)> {
-        vec![("Notes", StringKey::Notes),
-             ("Password", StringKey::Password),
-             ("Title", StringKey::Title),
-             ("URL", StringKey::Url),
-             ("UserName", StringKey::Username),
-             ("FooBar", StringKey::Other(String::from("FooBar")))]
+        vec![
+            ("Notes", StringKey::Notes),
+            ("Password", StringKey::Password),
+            ("Title", StringKey::Title),
+            ("URL", StringKey::Url),
+            ("UserName", StringKey::Username),
+            ("FooBar", StringKey::Other(String::from("FooBar"))),
+        ]
     }
 }

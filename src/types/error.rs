@@ -99,12 +99,18 @@ impl fmt::Display for Error {
             Error::InvalidBlockId(val) => write!(f, "Invalid block id: {}", val),
             Error::InvalidDbSignature(val) => write!(f, "Invalid database signature: {:?}", val),
             Error::InvalidFinalBlockHash(val) => write!(f, "Invalid final block hash: {:?}", val),
-            Error::InvalidHeaderSize { id, expected, actual } => {
-                write!(f,
-                       "Invalid header size: id: {}, expected: {}, actual: {}",
-                       id,
-                       expected,
-                       actual)
+            Error::InvalidHeaderSize {
+                id,
+                expected,
+                actual,
+            } => {
+                write!(
+                    f,
+                    "Invalid header size: id: {}, expected: {}, actual: {}",
+                    id,
+                    expected,
+                    actual
+                )
             }
             Error::InvalidHeaderHash => write!(f, "Invalid header hash"),
             Error::InvalidKey => write!(f, "Invalid key"),

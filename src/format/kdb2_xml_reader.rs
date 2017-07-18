@@ -65,7 +65,7 @@ pub fn read<R: Read>(reader: &mut R, stream_key: &StreamKey) -> Result<XmlData> 
 fn read_kee_pass_file<R: Read>(
     reader: &mut EventReader<R>,
     data: &mut XmlData,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<()> {
     loop {
         let event = try!(reader.next());
@@ -199,7 +199,7 @@ fn read_meta<R: Read>(reader: &mut EventReader<R>, data: &mut XmlData) -> Result
 fn read_root<R: Read>(
     reader: &mut EventReader<R>,
     data: &mut XmlData,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<()> {
     loop {
         let event = try!(reader.next());
@@ -439,7 +439,7 @@ fn read_memory_protection<R: Read>(reader: &mut EventReader<R>, data: &mut XmlDa
 fn read_group<R: Read>(
     reader: &mut EventReader<R>,
     data: &mut XmlData,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<GroupUuid> {
     let mut node = Group::default();
     loop {
@@ -460,8 +460,12 @@ fn read_group<R: Read>(
                         node.enable_searching = try!(xml::read_bool_opt(reader));
                     }
                     kdb2::ENTRY_TAG => {
-                        node.entries
-                            .push(try!(read_entry(reader, data, cipher, EntryState::Active)));
+                        node.entries.push(try!(read_entry(
+                            reader,
+                            data,
+                            cipher,
+                            EntryState::Active,
+                        )));
                     }
                     kdb2::GROUP_TAG => {
                         node.groups.push(try!(read_group(reader, data, cipher)));
@@ -510,7 +514,7 @@ fn read_entry<R: Read>(
     reader: &mut EventReader<R>,
     data: &mut XmlData,
     cipher: &mut Salsa20,
-    state: EntryState
+    state: EntryState,
 ) -> Result<EntryUuid> {
     let mut node = Entry::default();
     loop {
@@ -665,7 +669,7 @@ fn read_association<R: Read>(reader: &mut EventReader<R>) -> Result<Association>
 
 fn read_binary<R: Read>(
     reader: &mut EventReader<R>,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<(BinaryKey, BinaryValue)> {
     let mut key: Option<BinaryKey> = None;
     let mut value: Option<BinaryValue> = None;
@@ -710,7 +714,7 @@ fn read_binary<R: Read>(
 fn read_history<R: Read>(
     reader: &mut EventReader<R>,
     data: &mut XmlData,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<()> {
     loop {
         let event = try!(reader.next());
@@ -739,7 +743,7 @@ fn read_history<R: Read>(
 
 fn read_string<R: Read>(
     reader: &mut EventReader<R>,
-    cipher: &mut Salsa20
+    cipher: &mut Salsa20,
 ) -> Result<(StringKey, StringValue)> {
     let mut key: Option<StringKey> = None;
     let mut value: Option<StringValue> = None;
@@ -782,8 +786,9 @@ fn read_string<R: Read>(
 }
 
 fn read_times<N, R>(reader: &mut EventReader<R>, node: &mut N) -> Result<()>
-    where N: Times,
-          R: Read
+where
+    N: Times,
+    R: Read,
 {
     loop {
         let event = try!(reader.next());
@@ -830,7 +835,7 @@ fn read_times<N, R>(reader: &mut EventReader<R>, node: &mut N) -> Result<()>
 
 fn get_compressed_attr_value<R: Read>(
     reader: &mut EventReader<R>,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match xml::search_attr_value(attrs, "compressed") {
         Some(val) => {
@@ -845,7 +850,7 @@ fn get_compressed_attr_value<R: Read>(
 
 fn get_id_attr_value<R: Read>(
     reader: &mut EventReader<R>,
-    attrs: &Vec<OwnedAttribute>
+    attrs: &Vec<OwnedAttribute>,
 ) -> Result<String> {
     match xml::search_attr_value(attrs, "id") {
         Some(id) => Ok(id),

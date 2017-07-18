@@ -35,7 +35,9 @@ fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_xml<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    let config = EmitterConfig::new().perform_indent(true).indent_string("\t");
+    let config = EmitterConfig::new().perform_indent(true).indent_string(
+        "\t",
+    );
 
     {
         let mut writer = EventWriter::new_with_config(writer, config);
