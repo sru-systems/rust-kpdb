@@ -1,10 +1,10 @@
 [package]
 name = "rust-kpdb"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Martijn Rijkeboer <mrr@sru-systems.com>"]
 license = "MIT/Apache-2.0"
 description = "Library for reading/writing KeePass 2 and KeePassX databases."
-documentation = "https://docs.sru-systems.com/rust-kpdb/0.1.0/kpdb/"
+documentation = "https://docs.sru-systems.com/rust-kpdb/0.2.0/kpdb/"
 homepage = "https://github.com/sru-systems/rust-kpdb"
 repository = "https://github.com/sru-systems/rust-kpdb"
 readme = "README.md"
