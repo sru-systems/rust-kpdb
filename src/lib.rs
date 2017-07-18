@@ -88,12 +88,13 @@
 //! - KeePass 1 databases.
 
 
+extern crate base64;
 extern crate byteorder;
 extern crate chrono;
 extern crate crypto as rust_crypto;
 extern crate flate2;
+extern crate hex;
 extern crate rand;
-extern crate rustc_serialize;
 extern crate secstr;
 extern crate uuid;
 extern crate xml;

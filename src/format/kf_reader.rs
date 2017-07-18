@@ -8,10 +8,9 @@
 
 //! The reader for key files.
 
-use rustc_serialize::hex::FromHex;
+use hex::FromHex;
 use secstr::SecStr;
 use std::io::{Cursor, Read};
-use std::str;
 use super::{kf, xml};
 use types::{Error, KeyFile, KeyFileType, Result};
 use xml::reader::{EventReader, XmlEvent};
@@ -35,17 +34,12 @@ fn read_binary(data: Vec<u8>) -> Result<KeyFile> {
 }
 
 fn read_hex(data: Vec<u8>) -> Result<KeyFile> {
-    match str::from_utf8(&data) {
-        Ok(str) => {
-            match str.from_hex() {
-                Ok(key) => {
-                    Ok(KeyFile {
-                        key: SecStr::new(key),
-                        file_type: KeyFileType::Hex,
-                    })
-                }
-                Err(_) => Err(Error::InvalidKeyFile),
-            }
+    match FromHex::from_hex(&data) {
+        Ok(key) => {
+            Ok(KeyFile {
+                key: SecStr::new(key),
+                file_type: KeyFileType::Hex,
+            })
         }
         Err(_) => Err(Error::InvalidKeyFile),
     }

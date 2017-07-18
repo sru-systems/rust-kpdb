@@ -24,7 +24,7 @@ pub fn hash(inputs: &[&[u8]]) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
 
-    use rustc_serialize::hex::FromHex;
+    use hex::FromHex;
     use super::*;
 
     #[test]
@@ -38,7 +38,7 @@ mod tests {
 
         for (input_str, output_str) in tests {
             let input = input_str.as_bytes();
-            let expected = output_str.from_hex().unwrap();
+            let expected: Vec<u8> = FromHex::from_hex(output_str).unwrap();
             let actual = hash(&[&input]).to_vec();
             assert_eq!(actual, expected);
         }

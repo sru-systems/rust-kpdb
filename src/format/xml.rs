@@ -8,10 +8,10 @@
 
 //! Module containing functions for reading and writing XML.
 
+use base64;
 use crypto::salsa20::{self, Salsa20};
 use chrono::{DateTime, Utc};
 use compression::gzip;
-use rustc_serialize::base64::{FromBase64, STANDARD, ToBase64};
 use secstr::SecStr;
 use std::io::{Read, Write};
 use types::BinaryId;
@@ -51,7 +51,7 @@ pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Vec<u8>>> {
     match try!(read_string_opt(reader)) {
         Some(string) => {
-            match string.from_base64() {
+            match base64::decode(&string) {
                 Ok(bin) => Ok(Some(bin)),
                 Err(err) => read_err(reader, format!("Base64 {}", err)),
             }
@@ -307,7 +307,7 @@ pub fn search_attr_value(attrs: &Vec<OwnedAttribute>, name: &str) -> Option<Stri
 
 /// Attempts to write binary data.
 pub fn write_binary<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Result<()> {
-    write_string(writer, &data.to_base64(STANDARD))
+    write_string(writer, &base64::encode(&data))
 }
 
 /// Attempts to write a tag that contains binary data.
@@ -316,7 +316,7 @@ pub fn write_binary_tag<W: Write>(
     tag: &str,
     value: &[u8]
 ) -> Result<()> {
-    write_string_tag(writer, tag, &value.to_base64(STANDARD))
+    write_string_tag(writer, tag, &base64::encode(&value))
 }
 
 /// Attempts to write a tag that contains optional boolean data.

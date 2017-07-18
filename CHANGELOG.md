@@ -8,3 +8,4 @@ This documents all notable changes to
 ## 0.2.0
 
 - Update chrono dependency to 0.4.0.
+- Replace rustc-serialize dependency with base64 and hex.

@@ -8,7 +8,7 @@
 
 //! The writer for key files.
 
-use rustc_serialize::hex::ToHex;
+use hex::ToHex;
 use std::io::Write;
 use super::{kf, xml};
 use types::{KeyFile, KeyFileType, Result};
