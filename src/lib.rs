@@ -139,6 +139,7 @@ mod crypto;
 mod format;
 mod io;
 mod types;
+mod utils;
 
 
 #[cfg(test)]

@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 use common;
 use std::collections::HashMap;
 use super::association::Association;
@@ -44,7 +44,7 @@ pub struct Entry {
     pub binaries: HashMap<BinaryKey, BinaryValue>,
 
     /// The date and time this entry was created.
-    pub creation_time: DateTime<UTC>,
+    pub creation_time: DateTime<Utc>,
 
     /// The identifier of this entry's custom icon if any.
     pub custom_icon_uuid: Option<CustomIconUuid>,
@@ -53,7 +53,7 @@ pub struct Entry {
     pub expires: bool,
 
     /// The date and time this entry will expire if expires is true.
-    pub expiry_time: DateTime<UTC>,
+    pub expiry_time: DateTime<Utc>,
 
     /// The foreground color.
     pub foreground_color: Option<Color>,
@@ -62,13 +62,13 @@ pub struct Entry {
     pub icon: Icon,
 
     /// The date and time this entry was last accessed.
-    pub last_accessed: DateTime<UTC>,
+    pub last_accessed: DateTime<Utc>,
 
     /// The date and time this entry was last modified.
-    pub last_modified: DateTime<UTC>,
+    pub last_modified: DateTime<Utc>,
 
     /// The date and time the location of this entry was changed.
-    pub location_changed: DateTime<UTC>,
+    pub location_changed: DateTime<Utc>,
 
     /// Override URL.
     pub override_url: String,
@@ -107,7 +107,7 @@ impl Entry {
 
 impl Default for Entry {
     fn default() -> Entry {
-        let now = UTC::now();
+        let now = Utc::now();
         Entry {
             associations: Default::default(),
             auto_type_def_sequence: Default::default(),
@@ -134,7 +134,7 @@ impl Default for Entry {
 }
 
 impl Times for Entry {
-    fn creation_time(&self) -> DateTime<UTC> {
+    fn creation_time(&self) -> DateTime<Utc> {
         self.creation_time
     }
 
@@ -142,19 +142,19 @@ impl Times for Entry {
         self.expires
     }
 
-    fn expiry_time(&self) -> DateTime<UTC> {
+    fn expiry_time(&self) -> DateTime<Utc> {
         self.expiry_time
     }
 
-    fn last_accessed(&self) -> DateTime<UTC> {
+    fn last_accessed(&self) -> DateTime<Utc> {
         self.last_accessed
     }
 
-    fn last_modified(&self) -> DateTime<UTC> {
+    fn last_modified(&self) -> DateTime<Utc> {
         self.last_modified
     }
 
-    fn location_changed(&self) -> DateTime<UTC> {
+    fn location_changed(&self) -> DateTime<Utc> {
         self.location_changed
     }
 
@@ -162,7 +162,7 @@ impl Times for Entry {
         self.usage_count
     }
 
-    fn set_creation_time(&mut self, val: DateTime<UTC>) {
+    fn set_creation_time(&mut self, val: DateTime<Utc>) {
         self.creation_time = val;
     }
 
@@ -170,19 +170,19 @@ impl Times for Entry {
         self.expires = val;
     }
 
-    fn set_expiry_time(&mut self, val: DateTime<UTC>) {
+    fn set_expiry_time(&mut self, val: DateTime<Utc>) {
         self.expiry_time = val;
     }
 
-    fn set_last_accessed(&mut self, val: DateTime<UTC>) {
+    fn set_last_accessed(&mut self, val: DateTime<Utc>) {
         self.last_accessed = val;
     }
 
-    fn set_last_modified(&mut self, val: DateTime<UTC>) {
+    fn set_last_modified(&mut self, val: DateTime<Utc>) {
         self.last_modified = val;
     }
 
-    fn set_location_changed(&mut self, val: DateTime<UTC>) {
+    fn set_location_changed(&mut self, val: DateTime<Utc>) {
         self.location_changed = val;
     }
 
@@ -194,7 +194,7 @@ impl Times for Entry {
 #[cfg(test)]
 mod tests {
 
-    use chrono::{Duration, UTC};
+    use chrono::Utc;
     use std::collections::HashMap;
     use super::*;
     use types::EntryUuid;
@@ -202,10 +202,11 @@ mod tests {
     use types::Obfuscation;
     use types::StringKey;
     use types::StringsMap;
+    use utils::test::approx_equal_datetime;
 
     #[test]
     fn test_new_returns_correct_instance() {
-        let now = UTC::now();
+        let now = Utc::now();
         let entry = Entry::new();
         assert_eq!(entry.associations, Vec::new());
         assert_eq!(entry.auto_type_def_sequence, "");
@@ -213,15 +214,15 @@ mod tests {
         assert_eq!(entry.auto_type_obfuscation, Obfuscation::None);
         assert_eq!(entry.background_color, None);
         assert_eq!(entry.binaries, HashMap::new());
-        assert!((entry.creation_time - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.creation_time, now));
         assert_eq!(entry.custom_icon_uuid, None);
         assert_eq!(entry.expires, false);
-        assert!((entry.expiry_time - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
         assert_eq!(entry.icon, Icon::Key);
-        assert!((entry.last_accessed - now) < Duration::seconds(1));
-        assert!((entry.last_modified - now) < Duration::seconds(1));
-        assert!((entry.location_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.last_accessed, now));
+        assert!(approx_equal_datetime(entry.last_modified, now));
+        assert!(approx_equal_datetime(entry.location_changed, now));
         assert_eq!(entry.override_url, "");
         assert_eq!(entry.strings.len(), 5);
         assert!(entry.strings.contains_key(&StringKey::Notes));
@@ -236,7 +237,7 @@ mod tests {
 
     #[test]
     fn test_default_returns_correct_instance() {
-        let now = UTC::now();
+        let now = Utc::now();
         let entry = Entry::default();
         assert_eq!(entry.associations, Vec::new());
         assert_eq!(entry.auto_type_def_sequence, "");
@@ -244,15 +245,15 @@ mod tests {
         assert_eq!(entry.auto_type_obfuscation, Obfuscation::None);
         assert_eq!(entry.background_color, None);
         assert_eq!(entry.binaries, HashMap::new());
-        assert!((entry.creation_time - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.creation_time, now));
         assert_eq!(entry.custom_icon_uuid, None);
         assert_eq!(entry.expires, false);
-        assert!((entry.expiry_time - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
         assert_eq!(entry.icon, Icon::Key);
-        assert!((entry.last_accessed - now) < Duration::seconds(1));
-        assert!((entry.last_modified - now) < Duration::seconds(1));
-        assert!((entry.location_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(entry.last_accessed, now));
+        assert!(approx_equal_datetime(entry.last_modified, now));
+        assert!(approx_equal_datetime(entry.location_changed, now));
         assert_eq!(entry.override_url, "");
         assert_eq!(entry.strings, StringsMap::new());
         assert_eq!(entry.tags, "");

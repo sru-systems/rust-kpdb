@@ -9,7 +9,7 @@
 //! Module containing functions for reading and writing XML.
 
 use crypto::salsa20::{self, Salsa20};
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 use compression::gzip;
 use rustc_serialize::base64::{FromBase64, STANDARD, ToBase64};
 use secstr::SecStr;
@@ -139,10 +139,10 @@ pub fn read_custom_icon_uuid_opt<R: Read>(reader: &mut EventReader<R>)
 }
 
 /// Attempts to read a date and time.
-pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<UTC>> {
+pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<Utc>> {
     match try!(read_string_opt(reader)) {
         Some(string) => {
-            match string.parse::<DateTime<UTC>>() {
+            match string.parse::<DateTime<Utc>>() {
                 Ok(datetime) => Ok(datetime),
                 Err(err) => read_err(reader, format!("DateTime {}", err)),
             }
@@ -365,7 +365,7 @@ pub fn write_custom_icon_uuid_tag<W: Write>(
 pub fn write_datetime_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &DateTime<UTC>
+    value: &DateTime<Utc>
 ) -> Result<()> {
     write_string_tag(writer, tag, &format!("{:?}", value))
 }

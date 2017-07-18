@@ -6,48 +6,48 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 
 /// Trait for getting and setting of time related data.
 pub trait Times {
     /// Gets the date and time the implementor was created.
-    fn creation_time(&self) -> DateTime<UTC>;
+    fn creation_time(&self) -> DateTime<Utc>;
 
     /// Gets whether the implementor expires.
     fn expires(&self) -> bool;
 
     /// Gets the date and time the implementor will expire if expires is true.
-    fn expiry_time(&self) -> DateTime<UTC>;
+    fn expiry_time(&self) -> DateTime<Utc>;
 
     /// Gets the date and time the implementor was last accessed.
-    fn last_accessed(&self) -> DateTime<UTC>;
+    fn last_accessed(&self) -> DateTime<Utc>;
 
     /// Gets the date and time the implementor was last modified.
-    fn last_modified(&self) -> DateTime<UTC>;
+    fn last_modified(&self) -> DateTime<Utc>;
 
     /// Gets the date and time the location of the implementor was changed.
-    fn location_changed(&self) -> DateTime<UTC>;
+    fn location_changed(&self) -> DateTime<Utc>;
 
     /// Gets the usage count for the implementor.
     fn usage_count(&self) -> i32;
 
     /// Sets the date and time the implementor was created.
-    fn set_creation_time(&mut self, DateTime<UTC>);
+    fn set_creation_time(&mut self, DateTime<Utc>);
 
     /// Sets whether the implementor expires.
     fn set_expires(&mut self, bool);
 
     /// Sets the date and time the implementor will expire if expires is true.
-    fn set_expiry_time(&mut self, DateTime<UTC>);
+    fn set_expiry_time(&mut self, DateTime<Utc>);
 
     /// Sets the date and time the implementor was last accessed.
-    fn set_last_accessed(&mut self, DateTime<UTC>);
+    fn set_last_accessed(&mut self, DateTime<Utc>);
 
     /// Sets the date and time the implementor was last modified.
-    fn set_last_modified(&mut self, DateTime<UTC>);
+    fn set_last_modified(&mut self, DateTime<Utc>);
 
     /// Sets the date and time the location of the implementor was changed.
-    fn set_location_changed(&mut self, DateTime<UTC>);
+    fn set_location_changed(&mut self, DateTime<Utc>);
 
     /// Sets the usage count for the implementor.
     fn set_usage_count(&mut self, i32);

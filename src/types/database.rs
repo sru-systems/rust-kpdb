@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 use common;
 use format::{kdb2_reader, kdb2_writer};
 use io::{Log, LogReader, LogWriter};
@@ -75,19 +75,19 @@ pub struct Database {
     pub def_username: String,
 
     /// The date and time the default username was changed.
-    pub def_username_changed: DateTime<UTC>,
+    pub def_username_changed: DateTime<Utc>,
 
     /// Description of this database.
     pub description: String,
 
     /// The date and time the description was changed.
-    pub description_changed: DateTime<UTC>,
+    pub description_changed: DateTime<Utc>,
 
     /// Map with entries.
     pub entries: EntriesMap,
 
     /// The date and time the entry templates group was changed.
-    pub entry_templates_group_changed: DateTime<UTC>,
+    pub entry_templates_group_changed: DateTime<Utc>,
 
     /// The identifier of the group containing entry templates.
     pub entry_templates_group_uuid: GroupUuid,
@@ -124,13 +124,13 @@ pub struct Database {
     pub master_key_change_rec: i32,
 
     /// The date and time the master key was changed.
-    pub master_key_changed: DateTime<UTC>,
+    pub master_key_changed: DateTime<Utc>,
 
     /// Name of this database.
     pub name: String,
 
     /// The date and time the name was changed.
-    pub name_changed: DateTime<UTC>,
+    pub name_changed: DateTime<Utc>,
 
     /// Whether notes must be protected.
     pub protect_notes: bool,
@@ -148,7 +148,7 @@ pub struct Database {
     pub protect_username: bool,
 
     /// The date and time the recycle bin was changed.
-    pub recycle_bin_changed: DateTime<UTC>,
+    pub recycle_bin_changed: DateTime<Utc>,
 
     /// Whether the recycle bin is enabled.
     pub recycle_bin_enabled: bool,
@@ -169,7 +169,7 @@ impl Database {
     /// let db = Database::new(&key);
     /// ```
     pub fn new(key: &CompositeKey) -> Database {
-        let now = UTC::now();
+        let now = Utc::now();
         let mut root = Group::new(common::ROOT_GROUP_NAME);
         let mut recycle_bin = Group::new(common::RECYCLE_BIN_NAME);
         let mut groups = GroupsMap::new();
@@ -353,7 +353,7 @@ impl Database {
 #[cfg(test)]
 mod tests {
 
-    use chrono::{Duration, UTC};
+    use chrono::Utc;
     use super::*;
     use types::BinariesMap;
     use types::CompositeKey;
@@ -368,10 +368,11 @@ mod tests {
     use types::StreamCipher;
     use types::TransformRounds;
     use types::Version;
+    use utils::test::approx_equal_datetime;
 
     #[test]
     fn test_new_returns_correct_instance() {
-        let now = UTC::now();
+        let now = Utc::now();
         let key = CompositeKey::from_password("5pZ5mgpTkLCDaM46IuH7yGafZFIICyvC");
         let db = Database::new(&key);
         assert_eq!(db.comment, None);
@@ -387,11 +388,11 @@ mod tests {
         assert_eq!(db.custom_data, CustomDataMap::new());
         assert_eq!(db.custom_icons, CustomIconsMap::new());
         assert_eq!(db.def_username, "");
-        assert!((db.def_username_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.def_username_changed, now));
         assert_eq!(db.description, "");
-        assert!((db.description_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.description_changed, now));
         assert_eq!(db.entries, EntriesMap::new());
-        assert!((db.entry_templates_group_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.entry_templates_group_changed, now));
         assert_eq!(db.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(db.generator, "rust-kpdb");
         assert!(db.group_uuid != None);
@@ -405,15 +406,15 @@ mod tests {
         assert_eq!(db.maintenance_history_days, 365);
         assert_eq!(db.master_key_change_force, -1);
         assert_eq!(db.master_key_change_rec, -1);
-        assert!((db.master_key_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.master_key_changed, now));
         assert_eq!(db.name, "");
-        assert!((db.name_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.name_changed, now));
         assert_eq!(db.protect_notes, false);
         assert_eq!(db.protect_password, true);
         assert_eq!(db.protect_title, false);
         assert_eq!(db.protect_url, false);
         assert_eq!(db.protect_username, false);
-        assert!((db.recycle_bin_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(db.recycle_bin_changed, now));
         assert_eq!(db.recycle_bin_enabled, true);
         assert!(db.recycle_bin_uuid != GroupUuid::nil());
     }

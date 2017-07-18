@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, UTC};
+use chrono::{DateTime, Utc};
 use common;
 use super::binaries_map::BinariesMap;
 use super::color::Color;
@@ -37,19 +37,19 @@ pub struct XmlData {
     pub def_username: String,
 
     /// The date and time the default username was changed.
-    pub def_username_changed: DateTime<UTC>,
+    pub def_username_changed: DateTime<Utc>,
 
     /// Description of this database.
     pub description: String,
 
     /// Date and time the description was changed.
-    pub description_changed: DateTime<UTC>,
+    pub description_changed: DateTime<Utc>,
 
     /// Map with entries.
     pub entries: EntriesMap,
 
     /// The date and time the entry templates group was changed.
-    pub entry_templates_group_changed: DateTime<UTC>,
+    pub entry_templates_group_changed: DateTime<Utc>,
 
     /// The identifier of the group containing entry templates.
     pub entry_templates_group_uuid: GroupUuid,
@@ -89,13 +89,13 @@ pub struct XmlData {
     pub master_key_change_rec: i32,
 
     /// The date and time the master key was changed.
-    pub master_key_changed: DateTime<UTC>,
+    pub master_key_changed: DateTime<Utc>,
 
     /// Name of this database.
     pub name: String,
 
     /// The date and time the name was changed.
-    pub name_changed: DateTime<UTC>,
+    pub name_changed: DateTime<Utc>,
 
     /// Whether notes must be protected.
     pub protect_notes: bool,
@@ -113,7 +113,7 @@ pub struct XmlData {
     pub protect_username: bool,
 
     /// The date and time the recycle bin was changed.
-    pub recycle_bin_changed: DateTime<UTC>,
+    pub recycle_bin_changed: DateTime<Utc>,
 
     /// Whether the recycle bin is enabled.
     pub recycle_bin_enabled: bool,
@@ -124,7 +124,7 @@ pub struct XmlData {
 
 impl Default for XmlData {
     fn default() -> XmlData {
-        let now = UTC::now();
+        let now = Utc::now();
         XmlData {
             binaries: Default::default(),
             color: Default::default(),
@@ -167,7 +167,7 @@ impl Default for XmlData {
 #[cfg(test)]
 mod tests {
 
-    use chrono::{Duration, UTC};
+    use chrono::Utc;
     use super::*;
     use types::BinariesMap;
     use types::CustomDataMap;
@@ -176,21 +176,22 @@ mod tests {
     use types::GroupUuid;
     use types::GroupsMap;
     use types::HistoryMap;
+    use utils::test::approx_equal_datetime;
 
     #[test]
     fn test_default_returns_correct_instance() {
-        let now = UTC::now();
+        let now = Utc::now();
         let data = XmlData::default();
         assert_eq!(data.binaries, BinariesMap::new());
         assert_eq!(data.color, None);
         assert_eq!(data.custom_data, CustomDataMap::new());
         assert_eq!(data.custom_icons, CustomIconsMap::new());
         assert_eq!(data.def_username, "");
-        assert!((data.def_username_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.def_username_changed, now));
         assert_eq!(data.description, "");
-        assert!((data.description_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.description_changed, now));
         assert_eq!(data.entries, EntriesMap::new());
-        assert!((data.entry_templates_group_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.entry_templates_group_changed, now));
         assert_eq!(data.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(data.generator, "");
         assert_eq!(data.group_uuid, None);
@@ -204,15 +205,15 @@ mod tests {
         assert_eq!(data.maintenance_history_days, 365);
         assert_eq!(data.master_key_change_force, -1);
         assert_eq!(data.master_key_change_rec, -1);
-        assert!((data.master_key_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.master_key_changed, now));
         assert_eq!(data.name, "");
-        assert!((data.name_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.name_changed, now));
         assert_eq!(data.protect_notes, false);
         assert_eq!(data.protect_password, true);
         assert_eq!(data.protect_title, false);
         assert_eq!(data.protect_url, false);
         assert_eq!(data.protect_username, false);
-        assert!((data.recycle_bin_changed - now) < Duration::seconds(1));
+        assert!(approx_equal_datetime(data.recycle_bin_changed, now));
         assert_eq!(data.recycle_bin_enabled, true);
         assert_eq!(data.recycle_bin_uuid, GroupUuid::nil());
     }
