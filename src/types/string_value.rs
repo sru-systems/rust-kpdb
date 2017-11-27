@@ -29,11 +29,11 @@ impl StringValue {
     /// let plain_value = StringValue::new("plain", false);
     /// let protected_value = StringValue::new("secret", true);
     /// ```
-    pub fn new(value: &str, protected: bool) -> StringValue {
+    pub fn new<S: Into<String>>(value: S, protected: bool) -> StringValue {
         if protected {
-            StringValue::Protected(SecStr::from(value))
+            StringValue::Protected(SecStr::from(value.into()))
         } else {
-            StringValue::Plain(String::from(value))
+            StringValue::Plain(value.into())
         }
     }
 }

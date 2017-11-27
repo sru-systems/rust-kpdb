@@ -262,7 +262,7 @@ pub fn read_string_value_opt<R: Read>(
             Some(bytes) => {
                 let pbytes = salsa20::decrypt(cipher, &bytes);
                 match String::from_utf8(pbytes) {
-                    Ok(string) => Ok(Some(StringValue::new(&string, protected))),
+                    Ok(string) => Ok(Some(StringValue::new(string, protected))),
                     Err(err) => read_err(reader, format!("UTF8 {}", err)),
                 }
             }
@@ -270,7 +270,7 @@ pub fn read_string_value_opt<R: Read>(
         }
     } else {
         match try!(read_string_opt(reader)) {
-            Some(string) => Ok(Some(StringValue::new(&string, protected))),
+            Some(string) => Ok(Some(StringValue::new(string, protected))),
             None => Ok(Some(StringValue::new("", protected))),
         }
     }
