@@ -90,18 +90,98 @@ impl Entry {
     /// Create a new entry.
     pub fn new() -> Entry {
         let mut entry = Entry::default();
-        let notes = StringValue::new("", common::PROTECT_NOTES_DEFAULT);
-        let password = StringValue::new("", common::PROTECT_PASSWORD_DEFAULT);
-        let title = StringValue::new("", common::PROTECT_TITLE_DEFAULT);
-        let url = StringValue::new("", common::PROTECT_URL_DEFAULT);
-        let username = StringValue::new("", common::PROTECT_USERNAME_DEFAULT);
-        entry.strings.insert(StringKey::Notes, notes);
-        entry.strings.insert(StringKey::Password, password);
-        entry.strings.insert(StringKey::Title, title);
-        entry.strings.insert(StringKey::Url, url);
-        entry.strings.insert(StringKey::Username, username);
         entry.uuid = EntryUuid::new_random();
         entry
+    }
+
+    /// Gets the "Notes" string value if any.
+    pub fn notes(&self) -> Option<&StringValue> {
+        self.other(StringKey::Notes)
+    }
+
+    /// Gets an "Other" string value if any.
+    pub fn other(&self, key: StringKey) -> Option<&StringValue> {
+        self.strings.get(&key)
+    }
+
+    /// Gets the "Password" string value if any.
+    pub fn password(&self) -> Option<&StringValue> {
+        self.other(StringKey::Password)
+    }
+
+    /// Sets the "Notes" string value.
+    pub fn set_notes(&mut self, val: StringValue) {
+        self.set_other(StringKey::Notes, val);
+    }
+
+    /// Sets the "Notes" string value from a string.
+    pub fn set_notes_str<S: Into<String>>(&mut self, val: S) {
+        self.set_notes(StringValue::new(val, common::PROTECT_NOTES_DEFAULT));
+    }
+
+    /// Sets an "Other" string value.
+    pub fn set_other(&mut self, key: StringKey, val: StringValue) {
+        self.strings.insert(key, val);
+    }
+
+    /// Sets an "Other" string value from a string.
+    pub fn set_other_str<S: Into<String>>(&mut self, key: StringKey, val: S) {
+        self.set_other(key, StringValue::new(val, false));
+    }
+
+    /// Sets the "Password" string value.
+    pub fn set_password(&mut self, val: StringValue) {
+        self.set_other(StringKey::Password, val);
+    }
+
+    /// Sets the "Password" string value from a string.
+    pub fn set_password_str<S: Into<String>>(&mut self, val: S) {
+        self.set_password(StringValue::new(val, common::PROTECT_PASSWORD_DEFAULT));
+    }
+
+    /// Sets the "Title" string value.
+    pub fn set_title(&mut self, val: StringValue) {
+        self.set_other(StringKey::Title, val);
+    }
+
+    /// Sets the "Title" string value from a string.
+    pub fn set_title_str<S: Into<String>>(&mut self, val: S) {
+        self.set_title(StringValue::new(val, common::PROTECT_TITLE_DEFAULT));
+    }
+
+    /// Sets the "Url" string value.
+    pub fn set_url(&mut self, val: StringValue) {
+        self.set_other(StringKey::Url, val);
+    }
+
+    /// Sets the "Url" string value from a string.
+    pub fn set_url_str<S: Into<String>>(&mut self, val: S) {
+        self.set_url(StringValue::new(val, common::PROTECT_URL_DEFAULT));
+    }
+
+    /// Sets the "Username" string value.
+    pub fn set_username(&mut self, val: StringValue) {
+        self.set_other(StringKey::Username, val);
+    }
+
+    /// Sets the "Username" string value from a string.
+    pub fn set_username_str<S: Into<String>>(&mut self, val: S) {
+        self.set_username(StringValue::new(val, common::PROTECT_USERNAME_DEFAULT));
+    }
+
+    /// Gets the "Title" string value if any.
+    pub fn title(&self) -> Option<&StringValue> {
+        self.other(StringKey::Title)
+    }
+
+    /// Gets the "Url" string value if any.
+    pub fn url(&self) -> Option<&StringValue> {
+        self.other(StringKey::Url)
+    }
+
+    /// Gets the "Username" string value if any.
+    pub fn username(&self) -> Option<&StringValue> {
+        self.other(StringKey::Username)
     }
 }
 
@@ -109,26 +189,26 @@ impl Default for Entry {
     fn default() -> Entry {
         let now = Utc::now();
         Entry {
-            associations: Default::default(),
-            auto_type_def_sequence: Default::default(),
+            associations: Vec::new(),
+            auto_type_def_sequence: String::new(),
             auto_type_enabled: true,
-            auto_type_obfuscation: Default::default(),
-            background_color: Default::default(),
-            binaries: Default::default(),
+            auto_type_obfuscation: Obfuscation::None,
+            background_color: None,
+            binaries: HashMap::new(),
             creation_time: now,
-            custom_icon_uuid: Default::default(),
+            custom_icon_uuid: None,
             expires: false,
             expiry_time: now,
-            foreground_color: Default::default(),
+            foreground_color: None,
             icon: Icon::Key,
             last_accessed: now,
             last_modified: now,
             location_changed: now,
-            override_url: Default::default(),
-            strings: Default::default(),
-            tags: Default::default(),
-            usage_count: Default::default(),
-            uuid: Default::default(),
+            override_url: String::new(),
+            strings: StringsMap::new(),
+            tags: String::new(),
+            usage_count: 0,
+            uuid: EntryUuid::nil(),
         }
     }
 }
@@ -224,15 +304,145 @@ mod tests {
         assert!(approx_equal_datetime(entry.last_modified, now));
         assert!(approx_equal_datetime(entry.location_changed, now));
         assert_eq!(entry.override_url, "");
-        assert_eq!(entry.strings.len(), 5);
-        assert!(entry.strings.contains_key(&StringKey::Notes));
-        assert!(entry.strings.contains_key(&StringKey::Password));
-        assert!(entry.strings.contains_key(&StringKey::Title));
-        assert!(entry.strings.contains_key(&StringKey::Url));
-        assert!(entry.strings.contains_key(&StringKey::Username));
+        assert_eq!(entry.strings, StringsMap::new());
         assert_eq!(entry.tags, "");
         assert_eq!(entry.usage_count, 0);
         assert!(entry.uuid != EntryUuid::nil());
+    }
+
+    #[test]
+    fn test_notes_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        assert_eq!(entry.notes(), None);
+    }
+
+    #[test]
+    fn test_other_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        let key = StringKey::from_string("other");
+        assert_eq!(entry.other(key), None);
+    }
+
+    #[test]
+    fn test_password_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        assert_eq!(entry.password(), None);
+    }
+
+    #[test]
+    fn test_set_notes_sets_notes() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_notes(value.clone());
+        assert_eq!(entry.notes(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_notes_str_sets_notes() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_notes_str("test");
+        assert_eq!(entry.notes(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_other_sets_other() {
+        let mut entry = Entry::default();
+        let key = StringKey::from_string("other");
+        let value = StringValue::new("test", false);
+        entry.set_other(key.clone(), value.clone());
+        assert_eq!(entry.other(key), Some(&value));
+    }
+
+    #[test]
+    fn test_set_other_str_sets_other() {
+        let mut entry = Entry::default();
+        let key = StringKey::from_string("other");
+        let value = StringValue::new("test", false);
+        entry.set_other_str(key.clone(), "test");
+        assert_eq!(entry.other(key), Some(&value));
+    }
+
+    #[test]
+    fn test_set_password_sets_password() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_password(value.clone());
+        assert_eq!(entry.password(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_password_str_sets_password() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", true);
+        entry.set_password_str("test");
+        assert_eq!(entry.password(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_title_sets_title() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_title(value.clone());
+        assert_eq!(entry.title(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_title_str_sets_title() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_title_str("test");
+        assert_eq!(entry.title(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_url_sets_url() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_url(value.clone());
+        assert_eq!(entry.url(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_url_str_sets_url() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_url_str("test");
+        assert_eq!(entry.url(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_username_sets_username() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_username(value.clone());
+        assert_eq!(entry.username(), Some(&value));
+    }
+
+    #[test]
+    fn test_set_username_str_sets_username() {
+        let mut entry = Entry::default();
+        let value = StringValue::new("test", false);
+        entry.set_username_str("test");
+        assert_eq!(entry.username(), Some(&value));
+    }
+
+    #[test]
+    fn test_title_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        assert_eq!(entry.title(), None);
+    }
+
+    #[test]
+    fn test_url_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        assert_eq!(entry.url(), None);
+    }
+
+    #[test]
+    fn test_username_returns_none_on_default_entry() {
+        let entry = Entry::default();
+        assert_eq!(entry.username(), None);
     }
 
     #[test]
