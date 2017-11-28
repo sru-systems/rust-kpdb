@@ -456,11 +456,9 @@ fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Res
                         node.enable_searching = try!(xml::read_bool_opt(reader));
                     }
                     kdb2::ENTRY_TAG => {
-                        node.entries.push(try!(read_entry(
-                            reader,
-                            cipher,
-                            EntryState::Active,
-                        )));
+                        node.entries.push(try!(
+                            read_entry(reader, cipher, EntryState::Active)
+                        ));
                     }
                     kdb2::GROUP_TAG => {
                         node.groups.push(try!(read_group(reader, cipher)));
@@ -692,10 +690,7 @@ fn read_binary<R: Read>(
     Ok((key, value))
 }
 
-fn read_history<R: Read>(
-    reader: &mut EventReader<R>,
-    cipher: &mut Salsa20,
-) -> Result<Vec<Entry>> {
+fn read_history<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Result<Vec<Entry>> {
     let mut list = Vec::new();
     loop {
         let event = try!(reader.next());
