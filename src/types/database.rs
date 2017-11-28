@@ -19,12 +19,10 @@ use super::compression::Compression;
 use super::custom_data_map::CustomDataMap;
 use super::custom_icons_map::CustomIconsMap;
 use super::db_type::DbType;
-use super::entries_map::EntriesMap;
 use super::error::Error;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
 use super::groups_map::GroupsMap;
-use super::history_map::HistoryMap;
 use super::icon::Icon;
 use super::master_cipher::MasterCipher;
 use super::result::Result;
@@ -83,9 +81,6 @@ pub struct Database {
     /// The date and time the description was changed.
     pub description_changed: DateTime<Utc>,
 
-    /// Map with entries.
-    pub entries: EntriesMap,
-
     /// The date and time the entry templates group was changed.
     pub entry_templates_group_changed: DateTime<Utc>,
 
@@ -100,9 +95,6 @@ pub struct Database {
 
     /// Map with groups.
     pub groups: GroupsMap,
-
-    /// Map with history entries.
-    pub history: HistoryMap,
 
     /// Maximum number of history items.
     pub history_max_items: i32,
@@ -201,13 +193,11 @@ impl Database {
             def_username_changed: now,
             description: String::new(),
             description_changed: now,
-            entries: EntriesMap::new(),
             entry_templates_group_changed: now,
             entry_templates_group_uuid: GroupUuid::nil(),
             generator: String::from(common::GENERATOR_NAME),
             group_uuid: Some(root_uuid),
             groups: groups,
-            history: HistoryMap::new(),
             history_max_items: common::HISTORY_MAX_ITEMS_DEFAULT,
             history_max_size: common::HISTORY_MAX_SIZE_DEFAULT,
             last_selected_group: GroupUuid::nil(),
@@ -319,13 +309,11 @@ impl Database {
             def_username_changed: xml_data.def_username_changed,
             description: xml_data.description,
             description_changed: xml_data.description_changed,
-            entries: xml_data.entries,
             entry_templates_group_changed: xml_data.entry_templates_group_changed,
             entry_templates_group_uuid: xml_data.entry_templates_group_uuid,
             generator: xml_data.generator,
             group_uuid: xml_data.group_uuid,
             groups: xml_data.groups,
-            history: xml_data.history,
             history_max_items: xml_data.history_max_items,
             history_max_size: xml_data.history_max_size,
             last_selected_group: xml_data.last_selected_group,
@@ -361,9 +349,7 @@ mod tests {
     use types::CustomDataMap;
     use types::CustomIconsMap;
     use types::DbType;
-    use types::EntriesMap;
     use types::GroupUuid;
-    use types::HistoryMap;
     use types::MasterCipher;
     use types::StreamCipher;
     use types::TransformRounds;
@@ -391,14 +377,12 @@ mod tests {
         assert!(approx_equal_datetime(db.def_username_changed, now));
         assert_eq!(db.description, "");
         assert!(approx_equal_datetime(db.description_changed, now));
-        assert_eq!(db.entries, EntriesMap::new());
         assert!(approx_equal_datetime(db.entry_templates_group_changed, now));
         assert_eq!(db.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(db.generator, "rust-kpdb");
         assert!(db.group_uuid != None);
         assert!(db.group_uuid != Some(GroupUuid::nil()));
         assert_eq!(db.groups.len(), 2);
-        assert_eq!(db.history, HistoryMap::new());
         assert_eq!(db.history_max_items, 10);
         assert_eq!(db.history_max_size, 6291456);
         assert_eq!(db.last_selected_group, GroupUuid::nil());

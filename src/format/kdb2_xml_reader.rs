@@ -462,7 +462,6 @@ fn read_group<R: Read>(
                     kdb2::ENTRY_TAG => {
                         node.entries.push(try!(read_entry(
                             reader,
-                            data,
                             cipher,
                             EntryState::Active,
                         )));
@@ -512,10 +511,9 @@ fn read_group<R: Read>(
 
 fn read_entry<R: Read>(
     reader: &mut EventReader<R>,
-    data: &mut XmlData,
     cipher: &mut Salsa20,
     state: EntryState,
-) -> Result<EntryUuid> {
+) -> Result<Entry> {
     let mut node = Entry::default();
     loop {
         let event = try!(reader.next());
@@ -540,7 +538,7 @@ fn read_entry<R: Read>(
                     }
                     kdb2::HISTORY_TAG => {
                         if state == EntryState::Active {
-                            try!(read_history(reader, data, cipher));
+                            node.history.append(&mut try!(read_history(reader, cipher)));
                         }
                     }
                     kdb2::ICON_ID_TAG => {
@@ -575,18 +573,7 @@ fn read_entry<R: Read>(
             _ => {}
         }
     }
-
-    let uuid = node.uuid;
-    match state {
-        EntryState::Active => {
-            data.entries.insert(uuid, node);
-        }
-        EntryState::History => {
-            let list = data.history.entry(uuid).or_insert(Vec::new());
-            list.push(node);
-        }
-    }
-    Ok(uuid)
+    Ok(node)
 }
 
 fn read_auto_type<R: Read>(reader: &mut EventReader<R>, node: &mut Entry) -> Result<()> {
@@ -713,16 +700,16 @@ fn read_binary<R: Read>(
 
 fn read_history<R: Read>(
     reader: &mut EventReader<R>,
-    data: &mut XmlData,
     cipher: &mut Salsa20,
-) -> Result<()> {
+) -> Result<Vec<Entry>> {
+    let mut list = Vec::new();
     loop {
         let event = try!(reader.next());
         match event {
             XmlEvent::StartElement { name, .. } => {
                 match name.local_name.as_str() {
                     kdb2::ENTRY_TAG => {
-                        try!(read_entry(reader, data, cipher, EntryState::History));
+                        list.push(try!(read_entry(reader, cipher, EntryState::History)));
                     }
                     _ => {}
                 }
@@ -738,7 +725,7 @@ fn read_history<R: Read>(
         }
     }
 
-    Ok(())
+    Ok(list)
 }
 
 fn read_string<R: Read>(

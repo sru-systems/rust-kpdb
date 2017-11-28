@@ -58,6 +58,9 @@ pub struct Entry {
     /// The foreground color.
     pub foreground_color: Option<Color>,
 
+    /// This entry's history.
+    pub history: Vec<Entry>,
+
     /// This entry's icon.
     pub icon: Icon,
 
@@ -200,6 +203,7 @@ impl Default for Entry {
             expires: false,
             expiry_time: now,
             foreground_color: None,
+            history: Vec::new(),
             icon: Icon::Key,
             last_accessed: now,
             last_modified: now,
@@ -299,6 +303,7 @@ mod tests {
         assert_eq!(entry.expires, false);
         assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
+        assert_eq!(entry.history, Vec::new());
         assert_eq!(entry.icon, Icon::Key);
         assert!(approx_equal_datetime(entry.last_accessed, now));
         assert!(approx_equal_datetime(entry.last_modified, now));
@@ -460,6 +465,7 @@ mod tests {
         assert_eq!(entry.expires, false);
         assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
+        assert_eq!(entry.history, Vec::new());
         assert_eq!(entry.icon, Icon::Key);
         assert!(approx_equal_datetime(entry.last_accessed, now));
         assert!(approx_equal_datetime(entry.last_modified, now));

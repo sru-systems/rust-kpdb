@@ -12,11 +12,9 @@ use super::binaries_map::BinariesMap;
 use super::color::Color;
 use super::custom_data_map::CustomDataMap;
 use super::custom_icons_map::CustomIconsMap;
-use super::entries_map::EntriesMap;
 use super::group_uuid::GroupUuid;
 use super::groups_map::GroupsMap;
 use super::header_hash::HeaderHash;
-use super::history_map::HistoryMap;
 
 /// Represents the XML data of the database.
 #[derive(Clone, Debug, PartialEq)]
@@ -45,9 +43,6 @@ pub struct XmlData {
     /// Date and time the description was changed.
     pub description_changed: DateTime<Utc>,
 
-    /// Map with entries.
-    pub entries: EntriesMap,
-
     /// The date and time the entry templates group was changed.
     pub entry_templates_group_changed: DateTime<Utc>,
 
@@ -65,9 +60,6 @@ pub struct XmlData {
 
     /// Hash of the headers as stored in the XML data.
     pub header_hash: Option<HeaderHash>,
-
-    /// Map with history entries.
-    pub history: HistoryMap,
 
     /// Maximum number of history items.
     pub history_max_items: i32,
@@ -134,14 +126,12 @@ impl Default for XmlData {
             def_username_changed: now,
             description: Default::default(),
             description_changed: now,
-            entries: Default::default(),
             entry_templates_group_changed: now,
             entry_templates_group_uuid: Default::default(),
             generator: Default::default(),
             group_uuid: Default::default(),
             groups: Default::default(),
             header_hash: Default::default(),
-            history: Default::default(),
             history_max_items: common::HISTORY_MAX_ITEMS_DEFAULT,
             history_max_size: common::HISTORY_MAX_SIZE_DEFAULT,
             last_selected_group: Default::default(),
@@ -172,10 +162,8 @@ mod tests {
     use types::BinariesMap;
     use types::CustomDataMap;
     use types::CustomIconsMap;
-    use types::EntriesMap;
     use types::GroupUuid;
     use types::GroupsMap;
-    use types::HistoryMap;
     use utils::test::approx_equal_datetime;
 
     #[test]
@@ -190,14 +178,12 @@ mod tests {
         assert!(approx_equal_datetime(data.def_username_changed, now));
         assert_eq!(data.description, "");
         assert!(approx_equal_datetime(data.description_changed, now));
-        assert_eq!(data.entries, EntriesMap::new());
         assert!(approx_equal_datetime(data.entry_templates_group_changed, now));
         assert_eq!(data.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(data.generator, "");
         assert_eq!(data.group_uuid, None);
         assert_eq!(data.groups, GroupsMap::new());
         assert_eq!(data.header_hash, None);
-        assert_eq!(data.history, HistoryMap::new());
         assert_eq!(data.history_max_items, 10);
         assert_eq!(data.history_max_size, 6291456);
         assert_eq!(data.last_selected_group, GroupUuid::nil());

@@ -176,7 +176,6 @@ fn write_custom_icon_section<W: Write>(
 
 fn write_entry_section<W: Write>(
     writer: &mut EventWriter<W>,
-    db: &Database,
     cipher: &mut Salsa20,
     entry: &Entry,
     state: EntryState,
@@ -205,7 +204,7 @@ fn write_entry_section<W: Write>(
     }
 
     if state == EntryState::Active {
-        try!(write_history_section(writer, db, cipher, &db.history.get(&entry.uuid)));
+        try!(write_history_section(writer, cipher, &entry.history));
     }
     xml::write_end_tag(writer)
 }
@@ -236,13 +235,8 @@ fn write_group_section<W: Write>(
     try!(xml::write_string_tag(writer, kdb2::NOTES_TAG, &group.notes));
     try!(write_times_section(writer, group));
 
-    for uuid in &group.entries {
-        match db.entries.get(&uuid) {
-            Some(ref entry) => {
-                try!(write_entry_section(writer, db, cipher, entry, EntryState::Active));
-            }
-            None => {}
-        }
+    for entry in &group.entries {
+        try!(write_entry_section(writer, cipher, entry, EntryState::Active));
     }
 
     for uuid in &group.groups {
@@ -258,18 +252,12 @@ fn write_group_section<W: Write>(
 
 fn write_history_section<W: Write>(
     writer: &mut EventWriter<W>,
-    db: &Database,
     cipher: &mut Salsa20,
-    entries: &Option<&Vec<Entry>>,
+    entries: &Vec<Entry>,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::HISTORY_TAG));
-    match *entries {
-        Some(list) => {
-            for entry in list {
-                try!(write_entry_section(writer, db, cipher, entry, EntryState::History));
-            }
-        }
-        None => {}
+    for entry in entries {
+        try!(write_entry_section(writer, cipher, entry, EntryState::History));
     }
     xml::write_end_tag(writer)
 }

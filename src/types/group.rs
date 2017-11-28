@@ -8,6 +8,7 @@
 
 use chrono::{DateTime, Utc};
 use super::custom_icon_uuid::CustomIconUuid;
+use super::entry::Entry;
 use super::entry_uuid::EntryUuid;
 use super::group_uuid::GroupUuid;
 use super::icon::Icon;
@@ -31,8 +32,8 @@ pub struct Group {
     /// Whether searching is enabled.
     pub enable_searching: Option<bool>,
 
-    /// Vector with entry identifiers that belong to this group.
-    pub entries: Vec<EntryUuid>,
+    /// Vector with entries that belong to this group.
+    pub entries: Vec<Entry>,
 
     /// Whether this group expires.
     pub expires: bool,
