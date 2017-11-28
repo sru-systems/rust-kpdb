@@ -211,7 +211,6 @@ fn write_entry_section<W: Write>(
 
 fn write_group_section<W: Write>(
     writer: &mut EventWriter<W>,
-    db: &Database,
     cipher: &mut Salsa20,
     group: &Group,
 ) -> Result<()> {
@@ -239,14 +238,10 @@ fn write_group_section<W: Write>(
         try!(write_entry_section(writer, cipher, entry, EntryState::Active));
     }
 
-    for uuid in &group.groups {
-        match db.groups.get(&uuid) {
-            Some(ref subgroup) => {
-                try!(write_group_section(writer, db, cipher, subgroup));
-            }
-            None => {}
-        }
+    for subgroup in &group.groups {
+        try!(write_group_section(writer, cipher, subgroup));
     }
+
     xml::write_end_tag(writer)
 }
 
@@ -353,17 +348,7 @@ fn write_root_section<W: Write>(
     cipher: &mut Salsa20,
 ) -> Result<()> {
     try!(xml::write_start_tag(writer, kdb2::ROOT_TAG));
-    match db.group_uuid {
-        Some(ref uuid) => {
-            match db.groups.get(uuid) {
-                Some(group) => {
-                    try!(write_group_section(writer, db, cipher, group));
-                }
-                None => {}
-            }
-        }
-        None => {}
-    }
+    try!(write_group_section(writer, cipher, &db.root_group));
     xml::write_end_tag(writer)
 }
 

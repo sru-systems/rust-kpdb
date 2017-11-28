@@ -207,7 +207,7 @@ fn read_root<R: Read>(
             XmlEvent::StartElement { name, .. } => {
                 match name.local_name.as_str() {
                     kdb2::GROUP_TAG => {
-                        data.group_uuid = Some(try!(read_group(reader, data, cipher)));
+                        data.root_group = Some(try!(read_group(reader, cipher)));
                     }
                     _ => {}
                 }
@@ -436,11 +436,7 @@ fn read_memory_protection<R: Read>(reader: &mut EventReader<R>, data: &mut XmlDa
     Ok(())
 }
 
-fn read_group<R: Read>(
-    reader: &mut EventReader<R>,
-    data: &mut XmlData,
-    cipher: &mut Salsa20,
-) -> Result<GroupUuid> {
+fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Result<Group> {
     let mut node = Group::default();
     loop {
         let event = try!(reader.next());
@@ -467,7 +463,7 @@ fn read_group<R: Read>(
                         )));
                     }
                     kdb2::GROUP_TAG => {
-                        node.groups.push(try!(read_group(reader, data, cipher)));
+                        node.groups.push(try!(read_group(reader, cipher)));
                     }
                     kdb2::ICON_ID_TAG => {
                         node.icon = try!(xml::read_icon(reader));
@@ -504,9 +500,7 @@ fn read_group<R: Read>(
         }
     }
 
-    let uuid = node.uuid;
-    data.groups.insert(uuid, node);
-    Ok(uuid)
+    Ok(node)
 }
 
 fn read_entry<R: Read>(

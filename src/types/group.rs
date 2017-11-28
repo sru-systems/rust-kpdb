@@ -41,8 +41,8 @@ pub struct Group {
     /// The date and time this group will expire if expires is true.
     pub expiry_time: DateTime<Utc>,
 
-    /// Vector with group identifiers that are subgroups of this group.
-    pub groups: Vec<GroupUuid>,
+    /// Vector with subgroups of this group.
+    pub groups: Vec<Group>,
 
     /// This group's icon.
     pub icon: Icon,

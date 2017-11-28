@@ -12,8 +12,8 @@ use super::binaries_map::BinariesMap;
 use super::color::Color;
 use super::custom_data_map::CustomDataMap;
 use super::custom_icons_map::CustomIconsMap;
+use super::group::Group;
 use super::group_uuid::GroupUuid;
-use super::groups_map::GroupsMap;
 use super::header_hash::HeaderHash;
 
 /// Represents the XML data of the database.
@@ -51,12 +51,6 @@ pub struct XmlData {
 
     /// Name of the generator.
     pub generator: String,
-
-    /// The identifier of the root group.
-    pub group_uuid: Option<GroupUuid>,
-
-    /// Map with groups.
-    pub groups: GroupsMap,
 
     /// Hash of the headers as stored in the XML data.
     pub header_hash: Option<HeaderHash>,
@@ -112,35 +106,36 @@ pub struct XmlData {
 
     /// The identifier of the recycle bin.
     pub recycle_bin_uuid: GroupUuid,
+
+    /// The root group.
+    pub root_group: Option<Group>,
 }
 
 impl Default for XmlData {
     fn default() -> XmlData {
         let now = Utc::now();
         XmlData {
-            binaries: Default::default(),
-            color: Default::default(),
-            custom_data: Default::default(),
-            custom_icons: Default::default(),
-            def_username: Default::default(),
+            binaries: BinariesMap::new(),
+            color: None,
+            custom_data: CustomDataMap::new(),
+            custom_icons: CustomIconsMap::new(),
+            def_username: String::new(),
             def_username_changed: now,
-            description: Default::default(),
+            description: String::new(),
             description_changed: now,
             entry_templates_group_changed: now,
-            entry_templates_group_uuid: Default::default(),
-            generator: Default::default(),
-            group_uuid: Default::default(),
-            groups: Default::default(),
-            header_hash: Default::default(),
+            entry_templates_group_uuid: GroupUuid::nil(),
+            generator: String::new(),
+            header_hash: None,
             history_max_items: common::HISTORY_MAX_ITEMS_DEFAULT,
             history_max_size: common::HISTORY_MAX_SIZE_DEFAULT,
-            last_selected_group: Default::default(),
-            last_top_visible_group: Default::default(),
+            last_selected_group: GroupUuid::nil(),
+            last_top_visible_group: GroupUuid::nil(),
             maintenance_history_days: common::MAINTENANCE_HISTORY_DAYS_DEFAULT,
             master_key_change_force: common::MASTER_KEY_CHANGE_FORCE_DEFAULT,
             master_key_change_rec: common::MASTER_KEY_CHANGE_REC_DEFAULT,
             master_key_changed: now,
-            name: Default::default(),
+            name: String::new(),
             name_changed: now,
             protect_notes: common::PROTECT_NOTES_DEFAULT,
             protect_password: common::PROTECT_PASSWORD_DEFAULT,
@@ -149,7 +144,8 @@ impl Default for XmlData {
             protect_username: common::PROTECT_USERNAME_DEFAULT,
             recycle_bin_changed: now,
             recycle_bin_enabled: common::RECYCLE_BIN_ENABLED_DEFAULT,
-            recycle_bin_uuid: Default::default(),
+            recycle_bin_uuid: GroupUuid::nil(),
+            root_group: None,
         }
     }
 }
@@ -163,7 +159,6 @@ mod tests {
     use types::CustomDataMap;
     use types::CustomIconsMap;
     use types::GroupUuid;
-    use types::GroupsMap;
     use utils::test::approx_equal_datetime;
 
     #[test]
@@ -181,8 +176,6 @@ mod tests {
         assert!(approx_equal_datetime(data.entry_templates_group_changed, now));
         assert_eq!(data.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(data.generator, "");
-        assert_eq!(data.group_uuid, None);
-        assert_eq!(data.groups, GroupsMap::new());
         assert_eq!(data.header_hash, None);
         assert_eq!(data.history_max_items, 10);
         assert_eq!(data.history_max_size, 6291456);
@@ -202,5 +195,6 @@ mod tests {
         assert!(approx_equal_datetime(data.recycle_bin_changed, now));
         assert_eq!(data.recycle_bin_enabled, true);
         assert_eq!(data.recycle_bin_uuid, GroupUuid::nil());
+        assert_eq!(data.root_group, None);
     }
 }

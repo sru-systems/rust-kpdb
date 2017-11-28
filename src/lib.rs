@@ -117,7 +117,6 @@ pub use types::EntryUuid;
 pub use types::Error;
 pub use types::Group;
 pub use types::GroupUuid;
-pub use types::GroupsMap;
 pub use types::KeyFile;
 pub use types::KeyFileType;
 pub use types::MasterCipher;

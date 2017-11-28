@@ -22,7 +22,6 @@ use super::db_type::DbType;
 use super::error::Error;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
-use super::groups_map::GroupsMap;
 use super::icon::Icon;
 use super::master_cipher::MasterCipher;
 use super::result::Result;
@@ -90,12 +89,6 @@ pub struct Database {
     /// Name of the generator.
     pub generator: String,
 
-    /// The identifier of the root group.
-    pub group_uuid: Option<GroupUuid>,
-
-    /// Map with groups.
-    pub groups: GroupsMap,
-
     /// Maximum number of history items.
     pub history_max_items: i32,
 
@@ -147,6 +140,9 @@ pub struct Database {
 
     /// The identifier of the recycle bin.
     pub recycle_bin_uuid: GroupUuid,
+
+    /// The root group.
+    pub root_group: Group,
 }
 
 impl Database {
@@ -161,20 +157,16 @@ impl Database {
     /// let db = Database::new(&key);
     /// ```
     pub fn new(key: &CompositeKey) -> Database {
-        let now = Utc::now();
         let mut root = Group::new(common::ROOT_GROUP_NAME);
         let mut recycle_bin = Group::new(common::RECYCLE_BIN_NAME);
-        let mut groups = GroupsMap::new();
-
         recycle_bin.enable_auto_type = Some(false);
         recycle_bin.enable_searching = Some(false);
         recycle_bin.icon = Icon::RecycleBin;
 
-        let root_uuid = root.uuid;
+        let now = Utc::now();
         let recycle_bin_uuid = recycle_bin.uuid;
-        root.groups.push(recycle_bin_uuid);
-        groups.insert(root_uuid, root);
-        groups.insert(recycle_bin_uuid, recycle_bin);
+
+        root.groups.push(recycle_bin);
 
         Database {
             comment: None,
@@ -196,8 +188,6 @@ impl Database {
             entry_templates_group_changed: now,
             entry_templates_group_uuid: GroupUuid::nil(),
             generator: String::from(common::GENERATOR_NAME),
-            group_uuid: Some(root_uuid),
-            groups: groups,
             history_max_items: common::HISTORY_MAX_ITEMS_DEFAULT,
             history_max_size: common::HISTORY_MAX_SIZE_DEFAULT,
             last_selected_group: GroupUuid::nil(),
@@ -216,6 +206,7 @@ impl Database {
             recycle_bin_changed: now,
             recycle_bin_enabled: common::RECYCLE_BIN_ENABLED_DEFAULT,
             recycle_bin_uuid: recycle_bin_uuid,
+            root_group: root,
         }
     }
 
@@ -291,6 +282,11 @@ impl Database {
             None => {}
         }
 
+        let root_group = match xml_data.root_group {
+            Some(group) => group,
+            None => Group::new(common::ROOT_GROUP_NAME),
+        };
+
         let db = Database {
             comment: meta_data.comment,
             composite_key: key.clone(),
@@ -312,8 +308,6 @@ impl Database {
             entry_templates_group_changed: xml_data.entry_templates_group_changed,
             entry_templates_group_uuid: xml_data.entry_templates_group_uuid,
             generator: xml_data.generator,
-            group_uuid: xml_data.group_uuid,
-            groups: xml_data.groups,
             history_max_items: xml_data.history_max_items,
             history_max_size: xml_data.history_max_size,
             last_selected_group: xml_data.last_selected_group,
@@ -332,6 +326,7 @@ impl Database {
             recycle_bin_changed: xml_data.recycle_bin_changed,
             recycle_bin_enabled: xml_data.recycle_bin_enabled,
             recycle_bin_uuid: xml_data.recycle_bin_uuid,
+            root_group: root_group,
         };
 
         Ok(db)
@@ -380,9 +375,6 @@ mod tests {
         assert!(approx_equal_datetime(db.entry_templates_group_changed, now));
         assert_eq!(db.entry_templates_group_uuid, GroupUuid::nil());
         assert_eq!(db.generator, "rust-kpdb");
-        assert!(db.group_uuid != None);
-        assert!(db.group_uuid != Some(GroupUuid::nil()));
-        assert_eq!(db.groups.len(), 2);
         assert_eq!(db.history_max_items, 10);
         assert_eq!(db.history_max_size, 6291456);
         assert_eq!(db.last_selected_group, GroupUuid::nil());
@@ -401,5 +393,6 @@ mod tests {
         assert!(approx_equal_datetime(db.recycle_bin_changed, now));
         assert_eq!(db.recycle_bin_enabled, true);
         assert!(db.recycle_bin_uuid != GroupUuid::nil());
+        assert!(db.root_group.uuid != GroupUuid::nil());
     }
 }
