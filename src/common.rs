@@ -59,8 +59,5 @@ pub const PROTECT_USERNAME_DEFAULT: bool = false;
 /// The default value for recycle bin enabled.
 pub const RECYCLE_BIN_ENABLED_DEFAULT: bool = true;
 
-/// The name of the recycle bin group.
-pub const RECYCLE_BIN_NAME: &'static str = "Recycle Bin";
-
 /// The name of the root group.
 pub const ROOT_GROUP_NAME: &'static str = "Root";

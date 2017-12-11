@@ -24,7 +24,6 @@ use super::entry_uuid::EntryUuid;
 use super::error::Error;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
-use super::icon::Icon;
 use super::master_cipher::MasterCipher;
 use super::result::Result;
 use super::stream_cipher::StreamCipher;
@@ -160,17 +159,7 @@ impl Database {
     /// let db = Database::new(&key);
     /// ```
     pub fn new(key: &CompositeKey) -> Database {
-        let mut root = Group::new(common::ROOT_GROUP_NAME);
-        let mut recycle_bin = Group::new(common::RECYCLE_BIN_NAME);
-        recycle_bin.enable_auto_type = Some(false);
-        recycle_bin.enable_searching = Some(false);
-        recycle_bin.icon = Icon::RecycleBin;
-
         let now = Utc::now();
-        let recycle_bin_uuid = recycle_bin.uuid;
-
-        root.groups.push(recycle_bin);
-
         Database {
             comment: None,
             composite_key: key.clone(),
@@ -208,8 +197,8 @@ impl Database {
             protect_username: common::PROTECT_USERNAME_DEFAULT,
             recycle_bin_changed: now,
             recycle_bin_enabled: common::RECYCLE_BIN_ENABLED_DEFAULT,
-            recycle_bin_uuid: recycle_bin_uuid,
-            root_group: root,
+            recycle_bin_uuid: GroupUuid::nil(),
+            root_group: Group::new(common::ROOT_GROUP_NAME),
         }
     }
 
@@ -626,7 +615,7 @@ mod tests {
         assert_eq!(db.protect_username, false);
         assert!(approx_equal_datetime(db.recycle_bin_changed, now));
         assert_eq!(db.recycle_bin_enabled, true);
-        assert!(db.recycle_bin_uuid != GroupUuid::nil());
+        assert_eq!(db.recycle_bin_uuid, GroupUuid::nil());
         assert!(db.root_group.uuid != GroupUuid::nil());
     }
 
