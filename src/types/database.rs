@@ -19,6 +19,8 @@ use super::compression::Compression;
 use super::custom_data_map::CustomDataMap;
 use super::custom_icons_map::CustomIconsMap;
 use super::db_type::DbType;
+use super::entry::Entry;
+use super::entry_uuid::EntryUuid;
 use super::error::Error;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
@@ -26,6 +28,7 @@ use super::icon::Icon;
 use super::master_cipher::MasterCipher;
 use super::result::Result;
 use super::stream_cipher::StreamCipher;
+use super::string_value::StringValue;
 use super::transform_rounds::TransformRounds;
 use super::version::Version;
 
@@ -210,6 +213,223 @@ impl Database {
         }
     }
 
+    /// Returns a vector with entries that match (case insensitive) the supplied text.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Entry, Group};
+    ///
+    /// let mut protonmail = Entry::new();
+    /// protonmail.set_title("ProtonMail");
+    /// protonmail.set_username("puser");
+    /// protonmail.set_password("ppass");
+    /// protonmail.set_url("https://mail.protonmail.com");
+    ///
+    /// let mut group = Group::new("Email");
+    /// group.add_entry(protonmail);
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// db.root_group.add_group(group);
+    ///
+    /// let result = db.find_entries("Protonm");
+    /// assert_eq!(result.len(), 1);
+    ///
+    /// let result = db.find_entries("gmail");
+    /// assert_eq!(result.len(), 0);
+    /// ```
+    pub fn find_entries<'a, S: Into<String>>(&'a self, text: S) -> Vec<&'a Entry> {
+        let mut list = Vec::new();
+        let text = &text.into().to_lowercase();
+        for group in self.root_group.iter() {
+            for entry in group.entries.iter() {
+                if entry_contains_string(entry, text) {
+                    list.push(entry);
+                }
+            }
+        }
+        list
+    }
+
+
+    /// Returns a vector with mutable entries that match (case insensitive) the supplied text.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Entry, Group};
+    ///
+    /// let mut protonmail = Entry::new();
+    /// protonmail.set_title("ProtonMail");
+    /// protonmail.set_username("puser");
+    /// protonmail.set_password("ppass");
+    /// protonmail.set_url("https://mail.protonmail.com");
+    ///
+    /// let mut group = Group::new("Email");
+    /// group.add_entry(protonmail);
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// db.root_group.add_group(group);
+    ///
+    /// let result = db.find_entries_mut("Protonm");
+    /// assert_eq!(result.len(), 1);
+    /// ```
+    pub fn find_entries_mut<'a, S: Into<String>>(&'a mut self, text: S) -> Vec<&'a mut Entry> {
+        let mut list = Vec::new();
+        let text = &text.into().to_lowercase();
+        for group in self.root_group.iter_mut() {
+            for entry in group.entries.iter_mut() {
+                if entry_contains_string(entry, text) {
+                    list.push(entry);
+                }
+            }
+        }
+        list
+    }
+
+    /// Returns a vector with groups that match (case insensitive) the supplied name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Group};
+    ///
+    /// let group = Group::new("Email");
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// db.root_group.add_group(group);
+    ///
+    /// let result = db.find_groups("mail");
+    /// assert_eq!(result.len(), 1);
+    ///
+    /// let result = db.find_groups("unknown");
+    /// assert_eq!(result.len(), 0);
+    /// ```
+    pub fn find_groups<'a, S: Into<String>>(&'a self, name: S) -> Vec<&'a Group> {
+        let name = &name.into().to_lowercase();
+        self.root_group
+            .iter()
+            .filter(|g| g.name.to_lowercase().contains(name))
+            .collect::<Vec<&'a Group>>()
+    }
+
+    /// Returns a vector with mutable groups that match (case insensitive) the supplied name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Group};
+    ///
+    /// let group = Group::new("Email");
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// db.root_group.add_group(group);
+    ///
+    /// let result = db.find_groups_mut("mail");
+    /// assert_eq!(result.len(), 1);
+    /// ```
+    pub fn find_groups_mut<'a, S: Into<String>>(&'a mut self, name: S) -> Vec<&'a mut Group> {
+        let name = &name.into().to_lowercase();
+        self.root_group
+            .iter_mut()
+            .filter(|g| g.name.to_lowercase().contains(name))
+            .collect::<Vec<&'a mut Group>>()
+    }
+
+    /// Returns the entry that matches the UUID or None if not found.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Entry, Group};
+    ///
+    /// let entry = Entry::new();
+    /// let entry_uuid = entry.uuid;
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// assert_eq!(db.get_entry(entry_uuid), None);
+    ///
+    /// db.root_group.add_entry(entry.clone());
+    /// assert_eq!(db.get_entry(entry_uuid), Some(&entry));
+    /// ```
+    pub fn get_entry<'a>(&'a self, uuid: EntryUuid) -> Option<&'a Entry> {
+        for group in self.root_group.iter() {
+            for entry in group.entries.iter() {
+                if entry.uuid == uuid {
+                    return Some(entry);
+                }
+            }
+        }
+        None
+    }
+
+    /// Returns the mutable entry that matches the UUID or None if not found.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Entry, Group};
+    ///
+    /// let mut entry = Entry::new();
+    /// let entry_uuid = entry.uuid;
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// assert_eq!(db.get_entry_mut(entry_uuid), None);
+    ///
+    /// db.root_group.add_entry(entry.clone());
+    /// assert_eq!(db.get_entry_mut(entry_uuid), Some(&mut entry));
+    /// ```
+    pub fn get_entry_mut<'a>(&'a mut self, uuid: EntryUuid) -> Option<&'a mut Entry> {
+        for group in self.root_group.iter_mut() {
+            for entry in group.entries.iter_mut() {
+                if entry.uuid == uuid {
+                    return Some(entry);
+                }
+            }
+        }
+        None
+    }
+
+    /// Returns the group that matches the UUID or None if not found.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Group};
+    ///
+    /// let group = Group::new("Group");
+    /// let group_uuid = group.uuid;
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// assert_eq!(db.get_group(group_uuid), None);
+    ///
+    /// db.root_group.add_group(group.clone());
+    /// assert_eq!(db.get_group(group_uuid), Some(&group));
+    /// ```
+    pub fn get_group<'a>(&'a self, uuid: GroupUuid) -> Option<&'a Group> {
+        self.root_group.iter().find(|g| g.uuid == uuid)
+    }
+
+    /// Returns the mutable group that matches the UUID or None if not found.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use kpdb::{CompositeKey, Database, Group};
+    ///
+    /// let mut group = Group::new("Group");
+    /// let group_uuid = group.uuid;
+    ///
+    /// let mut db = Database::new(&CompositeKey::from_password("test"));
+    /// assert_eq!(db.get_group(group_uuid), None);
+    ///
+    /// db.root_group.add_group(group.clone());
+    /// assert_eq!(db.get_group_mut(group_uuid), Some(&mut group));
+    /// ```
+    pub fn get_group_mut<'a>(&'a mut self, uuid: GroupUuid) -> Option<&'a mut Group> {
+        self.root_group.iter_mut().find(|g| g.uuid == uuid)
+    }
+
     /// Attempts to open an existing database.
     ///
     /// # Examples
@@ -333,6 +553,20 @@ impl Database {
     }
 }
 
+fn entry_contains_string(entry: &Entry, name: &String) -> bool {
+    for value in entry.strings.values() {
+        match *value {
+            StringValue::Plain(ref string) => {
+                if string.to_lowercase().contains(name) {
+                    return true;
+                }
+            }
+            StringValue::Protected(_) => {}
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -394,5 +628,137 @@ mod tests {
         assert_eq!(db.recycle_bin_enabled, true);
         assert!(db.recycle_bin_uuid != GroupUuid::nil());
         assert!(db.root_group.uuid != GroupUuid::nil());
+    }
+
+    #[test]
+    fn test_find_entries_returns_correct_entries() {
+        let db = db_with_groups_and_entries();
+        let result = db.find_entries("Proton");
+        assert_eq!(result.len(), 2);
+
+        let result = db.find_entries("Unknown");
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn test_find_entries_mut_returns_correct_entries() {
+        let mut db = db_with_groups_and_entries();
+        {
+            let result = db.find_entries_mut("Proton");
+            assert_eq!(result.len(), 2);
+        }
+        {
+            let result = db.find_entries_mut("Unknown");
+            assert_eq!(result.len(), 0);
+        }
+    }
+
+    #[test]
+    fn test_find_groups_returns_correct_groups() {
+        let db = db_with_groups_and_entries();
+        let result = db.find_groups("mail");
+        assert_eq!(result.len(), 1);
+
+        let result = db.find_groups("Unknown");
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn test_find_groups_mut_returns_correct_groups() {
+        let mut db = db_with_groups_and_entries();
+        {
+            let result = db.find_groups_mut("mail");
+            assert_eq!(result.len(), 1);
+        }
+        {
+            let result = db.find_groups_mut("Unknown");
+            assert_eq!(result.len(), 0);
+        }
+    }
+
+    #[test]
+    fn test_get_entry_returns_correct_entry() {
+        let entry = Entry::new();
+        let entry_uuid = entry.uuid;
+
+        let mut group = Group::new("Group");
+        group.add_entry(entry.clone());
+
+        let mut db = Database::new(&CompositeKey::from_password("test"));
+        assert_eq!(db.get_entry(entry_uuid), None);
+
+        db.root_group.add_group(group);
+        assert_eq!(db.get_entry(entry_uuid), Some(&entry));
+    }
+
+    #[test]
+    fn test_get_entry_mut_returns_correct_entry() {
+        let mut entry = Entry::new();
+        let entry_uuid = entry.uuid;
+
+        let mut group = Group::new("Group");
+        group.add_entry(entry.clone());
+
+        let mut db = Database::new(&CompositeKey::from_password("test"));
+        assert_eq!(db.get_entry_mut(entry_uuid), None);
+
+        db.root_group.add_group(group);
+        assert_eq!(db.get_entry_mut(entry_uuid), Some(&mut entry));
+    }
+
+    #[test]
+    fn test_get_group_returns_correct_group() {
+        let group = Group::new("Group");
+        let group_uuid = group.uuid;
+
+        let mut db = Database::new(&CompositeKey::from_password("test"));
+        assert_eq!(db.get_group(group_uuid), None);
+
+        db.root_group.add_group(group.clone());
+        assert_eq!(db.get_group(group_uuid), Some(&group));
+    }
+
+    #[test]
+    fn test_get_group_mut_returns_correct_group() {
+        let mut group = Group::new("Group");
+        let group_uuid = group.uuid;
+
+        let mut db = Database::new(&CompositeKey::from_password("test"));
+        assert_eq!(db.get_group_mut(group_uuid), None);
+
+        db.root_group.add_group(group.clone());
+        assert_eq!(db.get_group_mut(group_uuid), Some(&mut group));
+    }
+
+    fn db_with_groups_and_entries() -> Database {
+        let mut gmail = Entry::new();
+        gmail.set_title("Gmail");
+        gmail.set_username("guser");
+        gmail.set_password("gpass");
+        gmail.set_url("https://mail.google.com");
+
+        let mut protonmail = Entry::new();
+        protonmail.set_title("ProtonMail");
+        protonmail.set_username("puser");
+        protonmail.set_password("ppass");
+        protonmail.set_url("https://mail.protonmail.com");
+
+        let mut protonvpn = Entry::new();
+        protonvpn.set_title("ProtonVPN");
+        protonvpn.set_username("puser");
+        protonvpn.set_password("ppass");
+        protonvpn.set_url("https://prontvpn.com");
+
+        let mut email_group = Group::new("Email");
+        email_group.add_entry(gmail);
+        email_group.add_entry(protonmail);
+
+        let mut vpn_group = Group::new("VPN");
+        vpn_group.add_entry(protonvpn);
+
+        let mut db = Database::new(&CompositeKey::from_password("test"));
+        db.root_group.add_group(email_group);
+        db.root_group.add_group(vpn_group);
+        db
     }
 }

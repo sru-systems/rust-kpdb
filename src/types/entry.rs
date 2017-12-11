@@ -9,6 +9,7 @@
 use chrono::{DateTime, Utc};
 use common;
 use std::collections::HashMap;
+use std::str;
 use super::association::Association;
 use super::binary_key::BinaryKey;
 use super::binary_value::BinaryValue;
@@ -97,93 +98,97 @@ impl Entry {
         entry
     }
 
-    /// Gets the "Notes" string value if any.
-    pub fn notes(&self) -> Option<&StringValue> {
+    /// Gets the notes string if any.
+    pub fn notes(&self) -> Option<&str> {
         self.other(StringKey::Notes)
     }
 
-    /// Gets an "Other" string value if any.
-    pub fn other(&self, key: StringKey) -> Option<&StringValue> {
-        self.strings.get(&key)
+    /// Gets an other string if any.
+    pub fn other(&self, key: StringKey) -> Option<&str> {
+        match self.strings.get(&key) {
+            Some(&StringValue::Plain(ref string)) => Some(string),
+            Some(&StringValue::Protected(ref secstr)) => str::from_utf8(secstr.unsecure()).ok(),
+            None => None,
+        }
     }
 
-    /// Gets the "Password" string value if any.
-    pub fn password(&self) -> Option<&StringValue> {
+    /// Gets the password string if any.
+    pub fn password(&self) -> Option<&str> {
         self.other(StringKey::Password)
     }
 
-    /// Sets the "Notes" string value.
-    pub fn set_notes(&mut self, val: StringValue) {
-        self.set_other(StringKey::Notes, val);
+    /// Sets the notes string value.
+    pub fn set_notes<S: Into<String>>(&mut self, val: S) {
+        self.strings.insert(
+            StringKey::Notes,
+            StringValue::new(
+                val,
+                common::PROTECT_NOTES_DEFAULT,
+            ),
+        );
     }
 
-    /// Sets the "Notes" string value from a string.
-    pub fn set_notes_str<S: Into<String>>(&mut self, val: S) {
-        self.set_notes(StringValue::new(val, common::PROTECT_NOTES_DEFAULT));
+    /// Sets an other string value.
+    pub fn set_other<S: Into<String>>(&mut self, key: StringKey, val: S) {
+        self.strings.insert(key, StringValue::new(val, false));
     }
 
-    /// Sets an "Other" string value.
-    pub fn set_other(&mut self, key: StringKey, val: StringValue) {
-        self.strings.insert(key, val);
+    /// Sets the password string value.
+    pub fn set_password<S: Into<String>>(&mut self, val: S) {
+        self.strings.insert(
+            StringKey::Password,
+            StringValue::new(
+                val,
+                common::PROTECT_PASSWORD_DEFAULT,
+            ),
+        );
     }
 
-    /// Sets an "Other" string value from a string.
-    pub fn set_other_str<S: Into<String>>(&mut self, key: StringKey, val: S) {
-        self.set_other(key, StringValue::new(val, false));
+    /// Sets the title string value.
+    pub fn set_title<S: Into<String>>(&mut self, val: S) {
+        self.strings.insert(
+            StringKey::Title,
+            StringValue::new(
+                val,
+                common::PROTECT_TITLE_DEFAULT,
+            ),
+        );
     }
 
-    /// Sets the "Password" string value.
-    pub fn set_password(&mut self, val: StringValue) {
-        self.set_other(StringKey::Password, val);
+    /// Sets the url string value.
+    pub fn set_url<S: Into<String>>(&mut self, val: S) {
+        self.strings.insert(
+            StringKey::Url,
+            StringValue::new(
+                val,
+                common::PROTECT_URL_DEFAULT,
+            ),
+        );
     }
 
-    /// Sets the "Password" string value from a string.
-    pub fn set_password_str<S: Into<String>>(&mut self, val: S) {
-        self.set_password(StringValue::new(val, common::PROTECT_PASSWORD_DEFAULT));
+    /// Sets the username string value.
+    pub fn set_username<S: Into<String>>(&mut self, val: S) {
+        self.strings.insert(
+            StringKey::Username,
+            StringValue::new(
+                val,
+                common::PROTECT_USERNAME_DEFAULT,
+            ),
+        );
     }
 
-    /// Sets the "Title" string value.
-    pub fn set_title(&mut self, val: StringValue) {
-        self.set_other(StringKey::Title, val);
-    }
-
-    /// Sets the "Title" string value from a string.
-    pub fn set_title_str<S: Into<String>>(&mut self, val: S) {
-        self.set_title(StringValue::new(val, common::PROTECT_TITLE_DEFAULT));
-    }
-
-    /// Sets the "Url" string value.
-    pub fn set_url(&mut self, val: StringValue) {
-        self.set_other(StringKey::Url, val);
-    }
-
-    /// Sets the "Url" string value from a string.
-    pub fn set_url_str<S: Into<String>>(&mut self, val: S) {
-        self.set_url(StringValue::new(val, common::PROTECT_URL_DEFAULT));
-    }
-
-    /// Sets the "Username" string value.
-    pub fn set_username(&mut self, val: StringValue) {
-        self.set_other(StringKey::Username, val);
-    }
-
-    /// Sets the "Username" string value from a string.
-    pub fn set_username_str<S: Into<String>>(&mut self, val: S) {
-        self.set_username(StringValue::new(val, common::PROTECT_USERNAME_DEFAULT));
-    }
-
-    /// Gets the "Title" string value if any.
-    pub fn title(&self) -> Option<&StringValue> {
+    /// Gets the title string if any.
+    pub fn title(&self) -> Option<&str> {
         self.other(StringKey::Title)
     }
 
-    /// Gets the "Url" string value if any.
-    pub fn url(&self) -> Option<&StringValue> {
+    /// Gets the url string if any.
+    pub fn url(&self) -> Option<&str> {
         self.other(StringKey::Url)
     }
 
-    /// Gets the "Username" string value if any.
-    pub fn username(&self) -> Option<&StringValue> {
+    /// Gets the username string if any.
+    pub fn username(&self) -> Option<&str> {
         self.other(StringKey::Username)
     }
 }
@@ -337,99 +342,44 @@ mod tests {
     #[test]
     fn test_set_notes_sets_notes() {
         let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_notes(value.clone());
-        assert_eq!(entry.notes(), Some(&value));
-    }
-
-    #[test]
-    fn test_set_notes_str_sets_notes() {
-        let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_notes_str("test");
-        assert_eq!(entry.notes(), Some(&value));
+        entry.set_notes("test");
+        assert_eq!(entry.notes(), Some("test"));
     }
 
     #[test]
     fn test_set_other_sets_other() {
         let mut entry = Entry::default();
         let key = StringKey::from_string("other");
-        let value = StringValue::new("test", false);
-        entry.set_other(key.clone(), value.clone());
-        assert_eq!(entry.other(key), Some(&value));
-    }
-
-    #[test]
-    fn test_set_other_str_sets_other() {
-        let mut entry = Entry::default();
-        let key = StringKey::from_string("other");
-        let value = StringValue::new("test", false);
-        entry.set_other_str(key.clone(), "test");
-        assert_eq!(entry.other(key), Some(&value));
+        entry.set_other(key.clone(), "test");
+        assert_eq!(entry.other(key), Some("test"));
     }
 
     #[test]
     fn test_set_password_sets_password() {
         let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_password(value.clone());
-        assert_eq!(entry.password(), Some(&value));
-    }
-
-    #[test]
-    fn test_set_password_str_sets_password() {
-        let mut entry = Entry::default();
-        let value = StringValue::new("test", true);
-        entry.set_password_str("test");
-        assert_eq!(entry.password(), Some(&value));
+        entry.set_password("test");
+        assert_eq!(entry.password(), Some("test"));
     }
 
     #[test]
     fn test_set_title_sets_title() {
         let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_title(value.clone());
-        assert_eq!(entry.title(), Some(&value));
-    }
-
-    #[test]
-    fn test_set_title_str_sets_title() {
-        let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_title_str("test");
-        assert_eq!(entry.title(), Some(&value));
+        entry.set_title("test");
+        assert_eq!(entry.title(), Some("test"));
     }
 
     #[test]
     fn test_set_url_sets_url() {
         let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_url(value.clone());
-        assert_eq!(entry.url(), Some(&value));
-    }
-
-    #[test]
-    fn test_set_url_str_sets_url() {
-        let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_url_str("test");
-        assert_eq!(entry.url(), Some(&value));
+        entry.set_url("test");
+        assert_eq!(entry.url(), Some("test"));
     }
 
     #[test]
     fn test_set_username_sets_username() {
         let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_username(value.clone());
-        assert_eq!(entry.username(), Some(&value));
-    }
-
-    #[test]
-    fn test_set_username_str_sets_username() {
-        let mut entry = Entry::default();
-        let value = StringValue::new("test", false);
-        entry.set_username_str("test");
-        assert_eq!(entry.username(), Some(&value));
+        entry.set_username("test");
+        assert_eq!(entry.username(), Some("test"));
     }
 
     #[test]
