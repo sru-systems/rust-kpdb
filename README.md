@@ -10,7 +10,7 @@ To use `rust-kpdb`, add the following to your Cargo.toml:
 
 ```toml
 [dependencies]
-rust-kpdb = "0.2.0"
+rust-kpdb = "0.3.0"
 ```
 
 And the following to your crate root:
@@ -22,60 +22,99 @@ extern crate kpdb;
 
 ## Examples
 
-Create a new database:
+Create a new database adding two groups and two entries:
 
 ```rust
-use kpdb::{CompositeKey, Database};
+use kpdb::{CompositeKey, Database, Entry, Group};
 
+// Create a new database.
 let key = CompositeKey::from_password("password");
-let db = Database::new(&key);
+let mut db = Database::new(&key);
+
+// Create a new group named Email.
+let mut email_group = Group::new("Email");
+let email_group_uuid = email_group.uuid;
+
+// Create an entry for ProtonMail and add it to the Email group.
+let mut protonmail = Entry::new();
+let protonmail_uuid = protonmail.uuid;
+protonmail.set_title("ProtonMail");
+protonmail.set_username("mailuser");
+protonmail.set_password("mailpass");
+protonmail.set_url("https://mail.protonmail.com");
+email_group.add_entry(protonmail);
+
+// Create a new group named VPN.
+let mut vpn_group = Group::new("VPN");
+
+// Create an entry for ProtonVPN and add it to the VPN group.
+let mut protonvpn = Entry::new();
+protonvpn.set_title("ProtonVPN");
+protonvpn.set_username("vpnuser");
+protonvpn.set_password("vpnpass");
+protonvpn.set_url("https://prontvpn.com");
+vpn_group.add_entry(protonvpn);
+
+// Add the Email and VPN groups to the Root group.
+db.root_group.add_group(email_group);
+db.root_group.add_group(vpn_group);
+
+// Find groups matching "email".
+let groups = db.find_groups("email");
+assert_eq!(groups.len(), 1);
+
+// Find entries matching "proton".
+let entries = db.find_entries("proton");
+assert_eq!(entries.len(), 2);
+
+// Retrieve a group by its UUID.
+let group = db.get_group(email_group_uuid).unwrap();
+assert_eq!(group.name, "Email");
+
+// Retrieve an entry by its UUID.
+let entry = db.get_entry(protonmail_uuid).unwrap();
+assert_eq!(entry.title(), Some("ProtonMail"));
+assert_eq!(entry.username(), Some("mailuser"));
+assert_eq!(entry.password(), Some("mailpass"));
+assert_eq!(entry.url(), Some("https://mail.protonmail.com"));
+assert_eq!(entry.notes(), None);
 ```
 
-Open the KeePass database passwords.kdbx using the password "password" and
-print it:
+Open the existing KeePass database passwords.kdbx using the password
+"password", print it and save it to new.kdbx:
 
 ```rust
 use kpdb::{CompositeKey, Database};
 use std::fs::File;
 
-fn main() {
-    let mut file = File::open("passwords.kdbx").unwrap();
-    let key = CompositeKey::from_password("password");
-    let db = Database::open(&mut file, &key).unwrap();
-    println!("{:?}", db);
-}
+let mut file = File::open("passwords.kdbx").unwrap();
+let key = CompositeKey::from_password("password");
+let db = Database::open(&mut file, &key).unwrap();
+
+println!("{:?}", db);
+
+let mut file = File::create("new.kdbx").unwrap();
+db.save(&mut file).unwrap();
 ```
 
-Open the KeePass database passwords.kdbx using both the password "password"
-and the key file passwords.key and print it:
+Open the existing KeePass database passwords.kdbx using both the password
+"password" and the key file passwords.key, print it and save it to new.kdbx:
 
 ```rust
 use kpdb::{CompositeKey, Database, KeyFile};
 use std::fs::File;
 
-fn main() {
-    let mut file = File::open("passwords.key").unwrap();
-    let key_file = KeyFile::open(&mut file).unwrap();
-    let key = CompositeKey::from_both("password", key_file);
+let mut file = File::open("passwords.key").unwrap();
+let key_file = KeyFile::open(&mut file).unwrap();
+let key = CompositeKey::from_both("password", key_file);
 
-    let mut file = File::open("passwords.kdbx").unwrap();
-    let db = Database::open(&mut file, &key).unwrap();
-    println!("{:?}", db);
-}
-```
+let mut file = File::open("passwords.kdbx").unwrap();
+let db = Database::open(&mut file, &key).unwrap();
 
-Save a new KeePass database to new.kdbx:
+println!("{:?}", db);
 
-```rust
-use kpdb::{CompositeKey, Database};
-use std::fs::File;
-
-fn main() {
-    let key = CompositeKey::from_password("password");
-    let db = Database::new(&key);
-    let mut file = File::create("new.kdbx").unwrap();
-    db.save(&mut file).unwrap();
-}
+let mut file = File::create("new.kdbx").unwrap();
+db.save(&mut file).unwrap();
 ```
 
 
