@@ -5,6 +5,11 @@ This documents all notable changes to
 [rust-kpdb](https://github.com/sru-systems/rust-kpdb).
 
 
+## 0.4.0
+
+- Export Times trait.
+
+
 ## 0.3.0
 
 - Entries are now stored directly inside their group.
