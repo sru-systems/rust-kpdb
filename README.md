@@ -10,7 +10,7 @@ To use `rust-kpdb`, add the following to your Cargo.toml:
 
 ```toml
 [dependencies]
-rust-kpdb = "0.3.0"
+rust-kpdb = "0.4.0"
 ```
 
 And the following to your crate root:
