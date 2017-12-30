@@ -165,6 +165,7 @@ pub use types::StreamCipher;
 pub use types::StringKey;
 pub use types::StringValue;
 pub use types::StringsMap;
+pub use types::Times;
 pub use types::TransformRounds;
 pub use types::Version;
 pub use types::{Color, ColorError};
