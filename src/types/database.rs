@@ -439,12 +439,12 @@ impl Database {
         let mut reader = LogReader::new(reader);
         let mut buffer = [0u8; 4];
 
-        try!(reader.read(&mut buffer));
+        reader.read(&mut buffer)?;
         if buffer != common::DB_SIGNATURE {
             return Err(Error::InvalidDbSignature(buffer));
         }
 
-        try!(reader.read(&mut buffer));
+        reader.read(&mut buffer)?;
         if buffer == common::KDB1_SIGNATURE {
             return Err(Error::UnhandledDbType(buffer));
         } else if buffer == common::KDB2_SIGNATURE {
@@ -481,7 +481,7 @@ impl Database {
     }
 
     fn open_kdb2<R: Log + Read>(reader: &mut R, key: &CompositeKey) -> Result<Database> {
-        let (meta_data, xml_data) = try!(kdb2_reader::read(reader, key));
+        let (meta_data, xml_data) = kdb2_reader::read(reader, key)?;
         match xml_data.header_hash {
             Some(header_hash) => {
                 if meta_data.header_hash != header_hash {

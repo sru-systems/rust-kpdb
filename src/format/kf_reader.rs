@@ -18,7 +18,7 @@ use xml::reader::{EventReader, XmlEvent};
 /// Attempts to read a key file from the reader.
 pub fn read<R: Read>(reader: &mut R) -> Result<KeyFile> {
     let mut data = Vec::new();
-    try!(reader.read_to_end(&mut data));
+    reader.read_to_end(&mut data)?;
     match data.len() {
         kf::BINARY_KEY_FILE_LEN => read_binary(data),
         kf::HEX_KEY_FILE_LEN => read_hex(data),
@@ -49,11 +49,11 @@ fn read_xml<R: Read>(reader: &mut R) -> Result<KeyFile> {
     let mut opt_key: Option<SecStr> = None;
     let mut reader = EventReader::new(reader);
     loop {
-        let event = try!(reader.next());
+        let event = reader.next()?;
         match event {
             XmlEvent::StartElement { name, .. } => {
                 if name.local_name == kf::KEY_FILE_TAG {
-                    opt_key = Some(try!(read_xml_key_file(&mut reader)));
+                    opt_key = Some(read_xml_key_file(&mut reader)?);
                 }
             }
             XmlEvent::EndDocument { .. } => {
@@ -77,13 +77,13 @@ fn read_xml<R: Read>(reader: &mut R) -> Result<KeyFile> {
 fn read_xml_key_file<R: Read>(reader: &mut EventReader<R>) -> Result<SecStr> {
     let mut opt_key: Option<SecStr> = None;
     loop {
-        let event = try!(reader.next());
+        let event = reader.next()?;
         match event {
             XmlEvent::StartElement { name, .. } => {
                 if name.local_name == kf::KEY_TAG {
-                    opt_key = Some(try!(read_xml_key(reader)));
+                    opt_key = Some(read_xml_key(reader)?);
                 } else if name.local_name == kf::META_TAG {
-                    try!(read_xml_meta(reader));
+                    read_xml_meta(reader)?;
                 }
             }
             XmlEvent::EndElement { name, .. } => {
@@ -103,11 +103,11 @@ fn read_xml_key_file<R: Read>(reader: &mut EventReader<R>) -> Result<SecStr> {
 
 fn read_xml_meta<R: Read>(reader: &mut EventReader<R>) -> Result<()> {
     loop {
-        let event = try!(reader.next());
+        let event = reader.next()?;
         match event {
             XmlEvent::StartElement { name, .. } => {
                 if name.local_name == kf::VERSION_TAG {
-                    let version = try!(xml::read_string(reader));
+                    let version = xml::read_string(reader)?;
                     if version != kf::XML_KEY_FILE_VERSION {
                         return xml::read_err(reader, "Unsupported key file version");
                     }
@@ -128,11 +128,11 @@ fn read_xml_meta<R: Read>(reader: &mut EventReader<R>) -> Result<()> {
 fn read_xml_key<R: Read>(reader: &mut EventReader<R>) -> Result<SecStr> {
     let mut opt_key: Option<SecStr> = None;
     loop {
-        let event = try!(reader.next());
+        let event = reader.next()?;
         match event {
             XmlEvent::StartElement { name, .. } => {
                 if name.local_name == kf::DATA_TAG {
-                    opt_key = Some(SecStr::new(try!(xml::read_binary(reader))));
+                    opt_key = Some(SecStr::new(xml::read_binary(reader)?));
                 }
             }
             XmlEvent::EndElement { name, .. } => {

@@ -16,7 +16,7 @@ pub struct RandomGen(OsRng);
 impl RandomGen {
     /// Attempts to create a new random number generator.
     pub fn new() -> Result<RandomGen> {
-        let os_rng = try!(OsRng::new());
+        let os_rng = OsRng::new()?;
         Ok(RandomGen(os_rng))
     }
 

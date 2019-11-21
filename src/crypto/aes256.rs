@@ -20,7 +20,7 @@ pub fn decrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> 
     let mut write_buffer = RefWriteBuffer::new(&mut buffer);
 
     loop {
-        let result = try!(cipher.decrypt(&mut read_buffer, &mut write_buffer, true));
+        let result = cipher.decrypt(&mut read_buffer, &mut write_buffer, true)?;
         output.extend(
             write_buffer
                 .take_read_buffer()
@@ -46,7 +46,7 @@ pub fn encrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> 
     let mut write_buffer = RefWriteBuffer::new(&mut buffer);
 
     loop {
-        let result = try!(cipher.encrypt(&mut read_buffer, &mut write_buffer, true));
+        let result = cipher.encrypt(&mut read_buffer, &mut write_buffer, true)?;
         output.extend(
             write_buffer
                 .take_read_buffer()

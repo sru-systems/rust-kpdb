@@ -33,7 +33,7 @@ use xml::writer::{self, EventWriter};
 
 /// Attempts to read binary data.
 pub fn read_binary<R: Read>(reader: &mut EventReader<R>) -> Result<Vec<u8>> {
-    match try!(read_binary_opt(reader)) {
+    match read_binary_opt(reader)? {
         Some(bytes) => Ok(bytes),
         None => Ok(Vec::new()),
     }
@@ -41,7 +41,7 @@ pub fn read_binary<R: Read>(reader: &mut EventReader<R>) -> Result<Vec<u8>> {
 
 /// Attempts to read an optional binary key.
 pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<BinaryKey>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => Ok(Some(BinaryKey(string))),
         None => Ok(None),
     }
@@ -49,7 +49,7 @@ pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 
 /// Attempts to read optional binary data.
 pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Vec<u8>>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => {
             match base64::decode(&string) {
                 Ok(bin) => Ok(Some(bin)),
@@ -67,11 +67,11 @@ pub fn read_binary_value_opt<R: Read>(
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<BinaryValue>> {
     let ref_value = search_attr_value(attrs, "ref");
-    let protected = try!(get_protected_attr_value(reader, attrs));
+    let protected = get_protected_attr_value(reader, attrs)?;
     match ref_value {
         Some(string) => Ok(Some(BinaryValue::Ref(BinaryId(string)))),
         None => {
-            match try!(read_binary_opt(reader)) {
+            match read_binary_opt(reader)? {
                 Some(bytes) => {
                     if protected {
                         let pbytes = salsa20::decrypt(cipher, &bytes);
@@ -95,7 +95,7 @@ pub fn read_binary_value_opt<R: Read>(
 
 /// Attempts to read a boolean.
 pub fn read_bool<R: Read>(reader: &mut EventReader<R>) -> Result<bool> {
-    match try!(read_bool_opt(reader)) {
+    match read_bool_opt(reader)? {
         Some(b) => Ok(b),
         None => read_err(reader, "No Bool value found"),
     }
@@ -103,7 +103,7 @@ pub fn read_bool<R: Read>(reader: &mut EventReader<R>) -> Result<bool> {
 
 /// Attempts to read an optional boolean.
 pub fn read_bool_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<bool>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => {
             match string.to_lowercase().as_str() {
                 "false" => Ok(Some(false)),
@@ -118,7 +118,7 @@ pub fn read_bool_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<bool
 
 /// Attempts to read an optional color.
 pub fn read_color_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Color>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => {
             match Color::from_hex_string(&string) {
                 Ok(color) => Ok(Some(color)),
@@ -133,7 +133,7 @@ pub fn read_color_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Col
 pub fn read_custom_icon_uuid_opt<R: Read>(
     reader: &mut EventReader<R>,
 ) -> Result<Option<CustomIconUuid>> {
-    match try!(read_uuid_opt(reader)) {
+    match read_uuid_opt(reader)? {
         Some(uuid) => Ok(Some(CustomIconUuid(uuid))),
         None => Ok(None),
     }
@@ -141,7 +141,7 @@ pub fn read_custom_icon_uuid_opt<R: Read>(
 
 /// Attempts to read a date and time.
 pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<Utc>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => {
             match string.parse::<DateTime<Utc>>() {
                 Ok(datetime) => Ok(datetime),
@@ -166,9 +166,9 @@ where
 
 /// Attempts to read GZip compressed binary data.
 pub fn read_gzip<R: Read>(reader: &mut EventReader<R>) -> Result<Vec<u8>> {
-    match try!(read_binary_opt(reader)) {
+    match read_binary_opt(reader)? {
         Some(bytes) => {
-            let decompressed = try!(gzip::decode(&bytes));
+            let decompressed = gzip::decode(&bytes)?;
             Ok(decompressed)
         }
         None => Ok(Vec::new()),
@@ -177,7 +177,7 @@ pub fn read_gzip<R: Read>(reader: &mut EventReader<R>) -> Result<Vec<u8>> {
 
 /// Attempts to read an i32.
 pub fn read_i32<R: Read>(reader: &mut EventReader<R>) -> Result<i32> {
-    match try!(read_i32_opt(reader)) {
+    match read_i32_opt(reader)? {
         Some(num) => Ok(num),
         None => read_err(reader, "No Number value found"),
     }
@@ -185,7 +185,7 @@ pub fn read_i32<R: Read>(reader: &mut EventReader<R>) -> Result<i32> {
 
 /// Attempts to read an optional i32.
 pub fn read_i32_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<i32>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => {
             match string.parse::<i32>() {
                 Ok(num) => Ok(Some(num)),
@@ -198,7 +198,7 @@ pub fn read_i32_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<i32>>
 
 /// Attempts to read an icon.
 pub fn read_icon<R: Read>(reader: &mut EventReader<R>) -> Result<Icon> {
-    match try!(read_i32_opt(reader)) {
+    match read_i32_opt(reader)? {
         Some(num) => {
             match Icon::from_i32(num) {
                 Ok(icon) => Ok(icon),
@@ -211,7 +211,7 @@ pub fn read_icon<R: Read>(reader: &mut EventReader<R>) -> Result<Icon> {
 
 /// Attempts to read an obfuscation type.
 pub fn read_obfuscation<R: Read>(reader: &mut EventReader<R>) -> Result<Obfuscation> {
-    match try!(read_i32_opt(reader)) {
+    match read_i32_opt(reader)? {
         Some(num) => {
             match Obfuscation::from_i32(num) {
                 Ok(val) => Ok(val),
@@ -224,7 +224,7 @@ pub fn read_obfuscation<R: Read>(reader: &mut EventReader<R>) -> Result<Obfuscat
 
 /// Attempts to read a string.
 pub fn read_string<R: Read>(reader: &mut EventReader<R>) -> Result<String> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => Ok(string),
         None => Ok(String::new()),
     }
@@ -232,7 +232,7 @@ pub fn read_string<R: Read>(reader: &mut EventReader<R>) -> Result<String> {
 
 /// Attempts to read an optional string key
 pub fn read_string_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<StringKey>> {
-    match try!(read_string_opt(reader)) {
+    match read_string_opt(reader)? {
         Some(string) => Ok(Some(StringKey::from_string(&string))),
         None => Ok(None),
     }
@@ -240,7 +240,7 @@ pub fn read_string_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 
 /// Attempts to read an optional string.
 pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<String>> {
-    let event = try!(reader.next());
+    let event = reader.next()?;
     match event {
         reader::XmlEvent::Characters(val) => Ok(Some(val)),
         reader::XmlEvent::EndElement { .. } => Ok(None),
@@ -262,11 +262,11 @@ pub fn read_string_value_opt<R: Read>(
     cipher: &mut Salsa20,
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<StringValue>> {
-    let pmem = try!(get_protect_in_memory_attr_value(reader, attrs));
-    let pxml = try!(get_protected_attr_value(reader, attrs));
+    let pmem = get_protect_in_memory_attr_value(reader, attrs)?;
+    let pxml = get_protected_attr_value(reader, attrs)?;
     let protected = pmem || pxml;
     if pxml {
-        match try!(read_binary_opt(reader)) {
+        match read_binary_opt(reader)? {
             Some(bytes) => {
                 let pbytes = salsa20::decrypt(cipher, &bytes);
                 match String::from_utf8(pbytes) {
@@ -277,7 +277,7 @@ pub fn read_string_value_opt<R: Read>(
             None => Ok(Some(StringValue::new("", protected))),
         }
     } else {
-        match try!(read_string_opt(reader)) {
+        match read_string_opt(reader)? {
             Some(string) => Ok(Some(StringValue::new(string, protected))),
             None => Ok(Some(StringValue::new("", protected))),
         }
@@ -286,7 +286,7 @@ pub fn read_string_value_opt<R: Read>(
 
 /// Attempts to read a UUID.
 pub fn read_uuid<R: Read>(reader: &mut EventReader<R>) -> Result<Uuid> {
-    match try!(read_uuid_opt(reader)) {
+    match read_uuid_opt(reader)? {
         Some(uuid) => Ok(uuid),
         None => read_err(reader, "No UUID value found"),
     }
@@ -294,7 +294,7 @@ pub fn read_uuid<R: Read>(reader: &mut EventReader<R>) -> Result<Uuid> {
 
 /// Attempts to read an optional UUID.
 pub fn read_uuid_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Uuid>> {
-    match try!(read_binary_opt(reader)) {
+    match read_binary_opt(reader)? {
         Some(bytes) => {
             match Uuid::from_bytes(&bytes) {
                 Ok(uuid) => Ok(Some(uuid)),
@@ -382,13 +382,13 @@ pub fn write_datetime_tag<W: Write>(
 
 /// Attempts to write an end tag.
 pub fn write_end_tag<W: Write>(writer: &mut EventWriter<W>) -> Result<()> {
-    try!(writer.write(writer::XmlEvent::end_element()));
+    writer.write(writer::XmlEvent::end_element())?;
     Ok(())
 }
 
 /// Attempts to write GZip compressed data.
 pub fn write_gzip<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Result<()> {
-    let compressed = try!(gzip::encode(data));
+    let compressed = gzip::encode(data)?;
     write_binary(writer, &compressed)
 }
 
@@ -399,20 +399,20 @@ pub fn write_i32_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str, value: i3
 
 /// Attempts to write a tag that contains no data.
 pub fn write_null_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str) -> Result<()> {
-    try!(write_start_tag(writer, tag));
-    try!(write_end_tag(writer));
+    write_start_tag(writer, tag)?;
+    write_end_tag(writer)?;
     Ok(())
 }
 
 /// Attempts to write a start tag.
 pub fn write_start_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str) -> Result<()> {
-    try!(writer.write(writer::XmlEvent::start_element(tag)));
+    writer.write(writer::XmlEvent::start_element(tag))?;
     Ok(())
 }
 
 /// Attempts to write string data.
 pub fn write_string<W: Write>(writer: &mut EventWriter<W>, value: &String) -> Result<()> {
-    try!(writer.write(value.as_str()));
+    writer.write(value.as_str())?;
     Ok(())
 }
 
@@ -422,9 +422,9 @@ pub fn write_string_tag<W: Write>(
     tag: &str,
     value: &String,
 ) -> Result<()> {
-    try!(write_start_tag(writer, tag));
-    try!(write_string(writer, value));
-    try!(write_end_tag(writer));
+    write_start_tag(writer, tag)?;
+    write_string(writer, value)?;
+    write_end_tag(writer)?;
     Ok(())
 }
 

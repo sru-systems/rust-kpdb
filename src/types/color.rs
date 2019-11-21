@@ -54,9 +54,9 @@ impl Color {
         } else if !hex.starts_with("#") {
             Err(ColorError::HexStringNoHashSign)
         } else {
-            let red = try!(from_hex_string_red(hex));
-            let green = try!(from_hex_string_green(hex));
-            let blue = try!(from_hex_string_blue(hex));
+            let red = from_hex_string_red(hex)?;
+            let green = from_hex_string_green(hex)?;
+            let blue = from_hex_string_blue(hex)?;
             Ok(Color {
                 red: red,
                 green: green,
