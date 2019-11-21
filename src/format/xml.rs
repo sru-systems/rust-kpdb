@@ -244,7 +244,15 @@ pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<St
     match event {
         reader::XmlEvent::Characters(val) => Ok(Some(val)),
         reader::XmlEvent::EndElement { .. } => Ok(None),
-        _ => read_err(reader, "No characters found"),
+        _ => {
+            let _: Result<Option<String>> = read_err(reader, "No characters found")
+                .map_err(|err| {
+                    eprintln!("{}", err);
+                    err
+                });
+            Ok(None)
+        },
+//        _ => read_err(reader, "No characters found"),
     }
 }
 

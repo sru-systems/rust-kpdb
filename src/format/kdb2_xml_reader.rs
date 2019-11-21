@@ -573,6 +573,7 @@ fn read_auto_type<R: Read>(reader: &mut EventReader<R>, node: &mut Entry) -> Res
         let event = try!(reader.next());
         match event {
             XmlEvent::StartElement { name, .. } => {
+                #[allow(unused_must_use)]
                 match name.local_name.as_str() {
                     kdb2::ASSOCIATION_TAG => {
                         read_association(reader)
