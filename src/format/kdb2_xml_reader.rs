@@ -575,7 +575,10 @@ fn read_auto_type<R: Read>(reader: &mut EventReader<R>, node: &mut Entry) -> Res
             XmlEvent::StartElement { name, .. } => {
                 match name.local_name.as_str() {
                     kdb2::ASSOCIATION_TAG => {
-                        node.associations.push(try!(read_association(reader)));
+                        read_association(reader)
+                            .map(|x| node.associations.push(x))
+                            .map_err(|err| eprintln!("{}", err))
+                        ;
                     }
                     kdb2::DATA_TRANSFER_OBFUSCATION_TAG => {
                         node.auto_type_obfuscation = try!(xml::read_obfuscation(reader));
