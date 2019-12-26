@@ -5,6 +5,11 @@ This documents all notable changes to
 [rust-kpdb](https://github.com/sru-systems/rust-kpdb).
 
 
+## 0.4.1
+
+- Make internal XML parser more tolerant.
+
+
 ## 0.4.0
 
 - Export Times trait.
