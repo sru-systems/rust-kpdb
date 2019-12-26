@@ -43,7 +43,7 @@ impl KeyFile {
     /// # }
     /// ```
     pub fn new_binary() -> Result<KeyFile> {
-        let key = try!(KeyFile::get_random_key());
+        let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
             key: key,
             file_type: KeyFileType::Binary,
@@ -64,7 +64,7 @@ impl KeyFile {
     /// # }
     /// ```
     pub fn new_hex() -> Result<KeyFile> {
-        let key = try!(KeyFile::get_random_key());
+        let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
             key: key,
             file_type: KeyFileType::Hex,
@@ -85,7 +85,7 @@ impl KeyFile {
     /// # }
     /// ```
     pub fn new_xml() -> Result<KeyFile> {
-        let key = try!(KeyFile::get_random_key());
+        let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
             key: key,
             file_type: KeyFileType::Xml,
@@ -133,7 +133,7 @@ impl KeyFile {
     }
 
     fn get_random_key() -> Result<SecStr> {
-        let mut random = try!(RandomGen::new());
+        let mut random = RandomGen::new()?;
         let bytes = random.next_32_bytes().to_vec();
         Ok(SecStr::new(bytes))
     }

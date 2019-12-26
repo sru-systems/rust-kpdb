@@ -353,7 +353,7 @@ impl error::Error for IconError {
         self.msg()
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }

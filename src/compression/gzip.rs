@@ -15,16 +15,16 @@ use types::Result;
 /// Decode (decompress) the input using GZip.
 pub fn decode(input: &[u8]) -> Result<Vec<u8>> {
     let mut output = Vec::new();
-    let mut decoder = try!(GzDecoder::new(input));
-    try!(decoder.read_to_end(&mut output));
+    let mut decoder = GzDecoder::new(input)?;
+    decoder.read_to_end(&mut output)?;
     Ok(output)
 }
 
 /// Encode (compress) the input using GZip.
 pub fn encode(input: &[u8]) -> Result<Vec<u8>> {
     let mut encoder = GzEncoder::new(Vec::new(), Compression::Default);
-    try!(encoder.write_all(input));
-    let output = try!(encoder.finish());
+    encoder.write_all(input)?;
+    let output = encoder.finish()?;
     Ok(output)
 }
 

@@ -24,13 +24,13 @@ pub fn write<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_binary<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    try!(writer.write(key.key.unsecure()));
+    writer.write(key.key.unsecure())?;
     Ok(())
 }
 
 fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
     let hex = key.key.unsecure().to_hex();
-    try!(writer.write(&hex.into_bytes()));
+    writer.write(&hex.into_bytes())?;
     Ok(())
 }
 
@@ -41,26 +41,26 @@ fn write_xml<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 
     {
         let mut writer = EventWriter::new_with_config(writer, config);
-        try!(write_xml_key_file_section(&mut writer, key));
+        write_xml_key_file_section(&mut writer, key)?;
     }
     Ok(())
 }
 
 fn write_xml_key_file_section<W: Write>(writer: &mut EventWriter<W>, key: &KeyFile) -> Result<()> {
-    try!(xml::write_start_tag(writer, kf::KEY_FILE_TAG));
-    try!(write_xml_meta_section(writer));
-    try!(write_xml_key_section(writer, key));
+    xml::write_start_tag(writer, kf::KEY_FILE_TAG)?;
+    write_xml_meta_section(writer)?;
+    write_xml_key_section(writer, key)?;
     xml::write_end_tag(writer)
 }
 
 fn write_xml_meta_section<W: Write>(writer: &mut EventWriter<W>) -> Result<()> {
-    try!(xml::write_start_tag(writer, kf::META_TAG));
-    try!(xml::write_string_tag(writer, kf::VERSION_TAG, &String::from(kf::XML_KEY_FILE_VERSION)));
+    xml::write_start_tag(writer, kf::META_TAG)?;
+    xml::write_string_tag(writer, kf::VERSION_TAG, &String::from(kf::XML_KEY_FILE_VERSION))?;
     xml::write_end_tag(writer)
 }
 
 fn write_xml_key_section<W: Write>(writer: &mut EventWriter<W>, key: &KeyFile) -> Result<()> {
-    try!(xml::write_start_tag(writer, kf::KEY_TAG));
-    try!(xml::write_binary_tag(writer, kf::DATA_TAG, key.key.unsecure()));
+    xml::write_start_tag(writer, kf::KEY_TAG)?;
+    xml::write_binary_tag(writer, kf::DATA_TAG, key.key.unsecure())?;
     xml::write_end_tag(writer)
 }
