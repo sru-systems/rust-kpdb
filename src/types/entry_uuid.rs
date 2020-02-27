@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use uuid::Uuid;
+use std::fmt::Display;
 
 /// The identifier for an entry.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -27,6 +28,12 @@ impl EntryUuid {
 impl Default for EntryUuid {
     fn default() -> EntryUuid {
         EntryUuid::nil()
+    }
+}
+
+impl Display for EntryUuid {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        f.write_str(self.0.to_string().as_str())
     }
 }
 

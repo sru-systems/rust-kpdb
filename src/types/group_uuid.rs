@@ -7,6 +7,7 @@
 // except according to those terms.
 
 use uuid::Uuid;
+use std::fmt::Display;
 
 /// The identifier for a group.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -27,6 +28,12 @@ impl GroupUuid {
 impl Default for GroupUuid {
     fn default() -> GroupUuid {
         GroupUuid::nil()
+    }
+}
+
+impl Display for GroupUuid {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        f.write_str(self.0.to_string().as_str())
     }
 }
 
