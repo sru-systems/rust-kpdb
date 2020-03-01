@@ -207,7 +207,7 @@ fn read_root<R: Read>(
             XmlEvent::StartElement { name, .. } => {
                 match name.local_name.as_str() {
                     kdb2::GROUP_TAG => {
-                        data.root_group = Some(read_group(reader, cipher)?);
+                        data.root_group = Some(read_group(reader, cipher, GroupUuid::nil())?);
                     }
                     _ => {}
                 }
@@ -436,8 +436,9 @@ fn read_memory_protection<R: Read>(reader: &mut EventReader<R>, data: &mut XmlDa
     Ok(())
 }
 
-fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Result<Group> {
+fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20, parent: GroupUuid) -> Result<Group> {
     let mut node = Group::default();
+    node.parent = parent;
     loop {
         let event = reader.next()?;
         match event {
@@ -456,10 +457,10 @@ fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Res
                         node.enable_searching = xml::read_bool_opt(reader)?;
                     }
                     kdb2::ENTRY_TAG => {
-                        node.entries.push(read_entry(reader, cipher, EntryState::Active)?);
+                        node.entries.push(read_entry(reader, cipher, EntryState::Active, GroupUuid::nil())?);
                     }
                     kdb2::GROUP_TAG => {
-                        node.groups.push(read_group(reader, cipher)?);
+                        node.groups.push(read_group(reader, cipher, GroupUuid::nil())?);
                     }
                     kdb2::ICON_ID_TAG => {
                         node.icon = xml::read_icon(reader)?;
@@ -495,6 +496,15 @@ fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Res
             _ => {}
         }
     }
+    // Has to be done after building up the entries/groups because the UUID is not known at the time
+    // the entries get constructed
+    let parent = node.uuid.clone();
+    for entry in node.entries.iter_mut() {
+        entry.parent = parent;
+    }
+    for group in node.groups.iter_mut() {
+        group.parent = parent;
+    }
 
     Ok(node)
 }
@@ -503,12 +513,14 @@ fn read_entry<R: Read>(
     reader: &mut EventReader<R>,
     cipher: &mut Salsa20,
     state: EntryState,
+    parent: GroupUuid,
 ) -> Result<Entry> {
     let mut node = Entry::default();
     loop {
         let event = reader.next()?;
         match event {
             XmlEvent::StartElement { name, .. } => {
+                node.parent = parent;
                 match name.local_name.as_str() {
                     kdb2::AUTO_TYPE_TAG => {
                         read_auto_type(reader, &mut node)?;
@@ -528,7 +540,7 @@ fn read_entry<R: Read>(
                     }
                     kdb2::HISTORY_TAG => {
                         if state == EntryState::Active {
-                            node.history.append(&mut read_history(reader, cipher)?);
+                            node.history.append(&mut read_history(reader, cipher, parent.clone())?);
                         }
                     }
                     kdb2::ICON_ID_TAG => {
@@ -692,7 +704,7 @@ fn read_binary<R: Read>(
     Ok((key, value))
 }
 
-fn read_history<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> Result<Vec<Entry>> {
+fn read_history<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20, parent: GroupUuid ) -> Result<Vec<Entry>> {
     let mut list = Vec::new();
     loop {
         let event = reader.next()?;
@@ -700,7 +712,7 @@ fn read_history<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20) -> R
             XmlEvent::StartElement { name, .. } => {
                 match name.local_name.as_str() {
                     kdb2::ENTRY_TAG => {
-                        list.push(read_entry(reader, cipher, EntryState::History)?);
+                        list.push(read_entry(reader, cipher, EntryState::History, parent)?);
                     }
                     _ => {}
                 }

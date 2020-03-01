@@ -7,7 +7,7 @@
 // except according to those terms.
 
 use chrono::{DateTime, Utc};
-use common;
+use ::{common, GroupUuid};
 use std::collections::HashMap;
 use std::str;
 use super::association::Association;
@@ -88,6 +88,9 @@ pub struct Entry {
 
     /// The identifier of this entry.
     pub uuid: EntryUuid,
+
+    /// The parent groups GroupUUID.
+    pub parent: GroupUuid,
 }
 
 impl Entry {
@@ -218,6 +221,7 @@ impl Default for Entry {
             tags: String::new(),
             usage_count: 0,
             uuid: EntryUuid::nil(),
+            parent: GroupUuid::nil(),
         }
     }
 }
