@@ -5,6 +5,12 @@ This documents all notable changes to
 [rust-kpdb](https://github.com/sru-systems/rust-kpdb).
 
 
+## 0.4.2
+
+- Add Display trait to EntryUUID and GroupUUID
+- Add attribute "parent" to Group and Entry
+
+
 ## 0.4.1
 
 - Make internal XML parser more tolerant.
