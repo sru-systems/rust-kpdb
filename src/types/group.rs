@@ -75,6 +75,9 @@ pub struct Group {
 
     /// The identifier of this group.
     pub uuid: GroupUuid,
+
+    /// The parent groups GroupUUID.
+    pub parent: GroupUuid,
 }
 
 impl Group {
@@ -238,6 +241,7 @@ impl Default for Group {
             notes: String::new(),
             usage_count: 0,
             uuid: GroupUuid::nil(),
+            parent: GroupUuid::nil(),
         }
     }
 }
