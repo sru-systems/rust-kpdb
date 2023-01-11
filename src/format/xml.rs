@@ -296,7 +296,7 @@ pub fn read_uuid<R: Read>(reader: &mut EventReader<R>) -> Result<Uuid> {
 pub fn read_uuid_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Uuid>> {
     match read_binary_opt(reader)? {
         Some(bytes) => {
-            match Uuid::from_bytes(&bytes) {
+            match Uuid:: from_slice(bytes.as_slice()) {
                 Ok(uuid) => Ok(Some(uuid)),
                 Err(err) => read_err(reader, format!("UUID {}", err)),
             }

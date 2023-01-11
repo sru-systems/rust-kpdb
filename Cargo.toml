@@ -22,7 +22,7 @@ hex = "0.4.3"
 rand = { version = "0.8.5", features = ["std"] }
 rust-crypto = "0.2.36"
 secstr = "0.5.1"
-uuid = { version = "0.5", features = ["v4"] }
+uuid = { version = "1.2.2", features = ["v4"] }
 xml-rs = "0.8.4"
 
 [dev-dependencies]
