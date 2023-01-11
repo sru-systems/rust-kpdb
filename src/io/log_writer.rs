@@ -64,7 +64,7 @@ mod tests {
 
     use std::io::Write;
     use super::*;
-    use io::Log;
+    use crate::io::Log;
 
     #[test]
     fn test_clear_clears_logged_data() {

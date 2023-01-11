@@ -7,7 +7,7 @@
 // except according to those terms.
 
 use chrono::{DateTime, Utc};
-use common;
+use crate::common;
 use super::binaries_map::BinariesMap;
 use super::color::Color;
 use super::custom_data_map::CustomDataMap;
@@ -155,11 +155,11 @@ mod tests {
 
     use chrono::Utc;
     use super::*;
-    use types::BinariesMap;
-    use types::CustomDataMap;
-    use types::CustomIconsMap;
-    use types::GroupUuid;
-    use utils::test::approx_equal_datetime;
+    use crate::types::BinariesMap;
+    use crate::types::CustomDataMap;
+    use crate::types::CustomIconsMap;
+    use crate::types::GroupUuid;
+    use crate::utils::test::approx_equal_datetime;
 
     #[test]
     fn test_default_returns_correct_instance() {

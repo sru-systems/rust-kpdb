@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rust_crypto::digest::Digest;
-use rust_crypto::sha2::Sha256;
+use crate::rust_crypto::digest::Digest;
+use crate::rust_crypto::sha2::Sha256;
 
 /// Hash the input using the SHA256 hashing algorithm.
 pub fn hash(inputs: &[&[u8]]) -> [u8; 32] {

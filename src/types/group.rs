@@ -378,10 +378,10 @@ mod tests {
 
     use chrono::Utc;
     use super::*;
-    use types::EntryUuid;
-    use types::GroupUuid;
-    use types::Icon;
-    use utils::test::approx_equal_datetime;
+    use crate::types::EntryUuid;
+    use crate::types::GroupUuid;
+    use crate::types::Icon;
+    use crate::utils::test::approx_equal_datetime;
 
     #[test]
     fn test_new_returns_correct_instance() {

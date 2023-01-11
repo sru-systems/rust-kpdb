@@ -7,17 +7,17 @@
 // except according to those terms.
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-use rust_crypto::aesni;
+use crate::rust_crypto::aesni;
 
-use crypto::sha256;
-use rust_crypto::aes;
-use rust_crypto::aessafe;
-use rust_crypto::symmetriccipher::BlockEncryptor;
-use rust_crypto::util;
+use crate::crypto::sha256;
+use crate::rust_crypto::aes;
+use crate::rust_crypto::aessafe;
+use crate::rust_crypto::symmetriccipher::BlockEncryptor;
+use crate::rust_crypto::util;
 use secstr::SecStr;
-use types::composite_key::CompositeKey;
-use types::transform_rounds::TransformRounds;
-use types::transform_seed::TransformSeed;
+use crate::types::composite_key::CompositeKey;
+use crate::types::transform_rounds::TransformRounds;
+use crate::types::transform_seed::TransformSeed;
 
 /// Key used for generating the master key.
 ///
@@ -73,7 +73,7 @@ impl TransformedKey {
 mod tests {
 
     use super::*;
-    use types::{CompositeKey, TransformRounds, TransformSeed};
+    use crate::types::{CompositeKey, TransformRounds, TransformSeed};
 
     #[test]
     fn test_new_returns_correct_instance() {

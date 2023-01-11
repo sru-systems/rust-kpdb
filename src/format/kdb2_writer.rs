@@ -9,31 +9,31 @@
 //! The database writer for KeePass 2 databases.
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use common;
-use compression::gzip;
-use crypto::aes256;
-use crypto::random_gen::RandomGen;
-use crypto::sha256;
-use io::Log;
+use crate::common;
+use crate::compression::gzip;
+use crate::crypto::aes256;
+use crate::crypto::random_gen::RandomGen;
+use crate::crypto::sha256;
+use crate::io::Log;
 use std::io::Write;
 use super::{kdb2, kdb2_xml_writer};
-use types::Comment;
-use types::Compression;
-use types::Database;
-use types::HeaderHash;
-use types::MasterCipher;
-use types::MasterIV;
-use types::MasterKey;
-use types::MasterSeed;
-use types::ProtectedStreamKey;
-use types::Result;
-use types::StreamCipher;
-use types::StreamKey;
-use types::StreamStartBytes;
-use types::TransformRounds;
-use types::TransformSeed;
-use types::TransformedKey;
-use types::Version;
+use crate::types::Comment;
+use crate::types::Compression;
+use crate::types::Database;
+use crate::types::HeaderHash;
+use crate::types::MasterCipher;
+use crate::types::MasterIV;
+use crate::types::MasterKey;
+use crate::types::MasterSeed;
+use crate::types::ProtectedStreamKey;
+use crate::types::Result;
+use crate::types::StreamCipher;
+use crate::types::StreamKey;
+use crate::types::StreamStartBytes;
+use crate::types::TransformRounds;
+use crate::types::TransformSeed;
+use crate::types::TransformedKey;
+use crate::types::Version;
 
 /// Attempts to write the database content to the writer.
 pub fn write<W: Log + Write>(writer: &mut W, db: &Database) -> Result<()> {

@@ -7,7 +7,7 @@
 // except according to those terms.
 
 use rand::{rngs::OsRng, RngCore};
-use types::Result;
+use crate::types::Result;
 
 /// A cryptographic secure random number generator.
 pub struct RandomGen(OsRng);

@@ -6,10 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rust_crypto::aes::{self, KeySize};
-use rust_crypto::blockmodes::PkcsPadding;
-use rust_crypto::buffer::{BufferResult, ReadBuffer, RefReadBuffer, RefWriteBuffer, WriteBuffer};
-use types::{MasterIV, MasterKey, Result};
+use crate::rust_crypto::aes::{self, KeySize};
+use crate::rust_crypto::blockmodes::PkcsPadding;
+use crate::rust_crypto::buffer::{BufferResult, ReadBuffer, RefReadBuffer, RefWriteBuffer, WriteBuffer};
+use crate::types::{MasterIV, MasterKey, Result};
 
 /// Decrypt the input using the key and initialization vector.
 pub fn decrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> {
@@ -67,13 +67,13 @@ pub fn encrypt(key: &MasterKey, iv: &MasterIV, input: &[u8]) -> Result<Vec<u8>> 
 mod tests {
 
     use super::*;
-    use types::CompositeKey;
-    use types::MasterIV;
-    use types::MasterKey;
-    use types::MasterSeed;
-    use types::TransformRounds;
-    use types::TransformSeed;
-    use types::TransformedKey;
+    use crate::types::CompositeKey;
+    use crate::types::MasterIV;
+    use crate::types::MasterKey;
+    use crate::types::MasterSeed;
+    use crate::types::TransformRounds;
+    use crate::types::TransformSeed;
+    use crate::types::TransformedKey;
 
     quickcheck! {
         fn test_decrypt_inverses_encrypt(data: Vec<u8>) -> bool {

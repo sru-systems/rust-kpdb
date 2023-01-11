@@ -60,7 +60,7 @@ mod tests {
 
     use std::io::{Cursor, Read};
     use super::*;
-    use io::Log;
+    use crate::io::Log;
 
     #[test]
     fn test_clear_clears_logged_data() {

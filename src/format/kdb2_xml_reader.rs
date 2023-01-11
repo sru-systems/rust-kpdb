@@ -8,29 +8,29 @@
 
 //! The XML reader for KeePass 2 databases.
 
-use crypto::salsa20::{self, Salsa20};
+use crate::crypto::salsa20::{self, Salsa20};
 use std::io::Read;
 use super::{kdb2, xml};
-use types::Association;
-use types::BinariesMap;
-use types::BinaryId;
-use types::BinaryKey;
-use types::BinaryValue;
-use types::CustomDataMap;
-use types::CustomIconUuid;
-use types::CustomIconsMap;
-use types::Entry;
-use types::EntryState;
-use types::EntryUuid;
-use types::Group;
-use types::GroupUuid;
-use types::HeaderHash;
-use types::Result;
-use types::StreamKey;
-use types::StringKey;
-use types::StringValue;
-use types::Times;
-use types::XmlData;
+use crate::types::Association;
+use crate::types::BinariesMap;
+use crate::types::BinaryId;
+use crate::types::BinaryKey;
+use crate::types::BinaryValue;
+use crate::types::CustomDataMap;
+use crate::types::CustomIconUuid;
+use crate::types::CustomIconsMap;
+use crate::types::Entry;
+use crate::types::EntryState;
+use crate::types::EntryUuid;
+use crate::types::Group;
+use crate::types::GroupUuid;
+use crate::types::HeaderHash;
+use crate::types::Result;
+use crate::types::StreamKey;
+use crate::types::StringKey;
+use crate::types::StringValue;
+use crate::types::Times;
+use crate::types::XmlData;
 use xml::attribute::OwnedAttribute;
 use xml::reader::{EventReader, XmlEvent};
 
