@@ -8,7 +8,7 @@
 
 //! The writer for key files.
 
-use hex::ToHex;
+use hex::encode;
 use std::io::Write;
 use super::{kf, xml};
 use types::{KeyFile, KeyFileType, Result};
@@ -29,7 +29,7 @@ fn write_binary<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    let hex = key.key.unsecure().to_hex();
+    let hex = encode(key.key.unsecure());
     writer.write(&hex.into_bytes())?;
     Ok(())
 }

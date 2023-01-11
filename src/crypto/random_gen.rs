@@ -6,8 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rand::Rng;
-use rand::os::OsRng;
+use rand::{rngs::OsRng, RngCore};
 use types::Result;
 
 /// A cryptographic secure random number generator.
@@ -16,7 +15,7 @@ pub struct RandomGen(OsRng);
 impl RandomGen {
     /// Attempts to create a new random number generator.
     pub fn new() -> Result<RandomGen> {
-        let os_rng = OsRng::new()?;
+        let os_rng = OsRng{};
         Ok(RandomGen(os_rng))
     }
 
