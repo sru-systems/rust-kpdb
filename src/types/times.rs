@@ -32,23 +32,23 @@ pub trait Times {
     fn usage_count(&self) -> i32;
 
     /// Sets the date and time the implementor was created.
-    fn set_creation_time(&mut self, DateTime<Utc>);
+    fn set_creation_time(&mut self, _ :DateTime<Utc>);
 
     /// Sets whether the implementor expires.
-    fn set_expires(&mut self, bool);
+    fn set_expires(&mut self, _ :bool);
 
     /// Sets the date and time the implementor will expire if expires is true.
-    fn set_expiry_time(&mut self, DateTime<Utc>);
+    fn set_expiry_time(&mut self,  _ :DateTime<Utc>);
 
     /// Sets the date and time the implementor was last accessed.
-    fn set_last_accessed(&mut self, DateTime<Utc>);
+    fn set_last_accessed(&mut self,  _ :DateTime<Utc>);
 
     /// Sets the date and time the implementor was last modified.
-    fn set_last_modified(&mut self, DateTime<Utc>);
+    fn set_last_modified(&mut self,  _ :DateTime<Utc>);
 
     /// Sets the date and time the location of the implementor was changed.
-    fn set_location_changed(&mut self, DateTime<Utc>);
+    fn set_location_changed(&mut self,  _ :DateTime<Utc>);
 
     /// Sets the usage count for the implementor.
-    fn set_usage_count(&mut self, i32);
+    fn set_usage_count(&mut self,  _ :i32);
 }

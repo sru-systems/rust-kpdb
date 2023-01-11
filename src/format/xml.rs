@@ -8,7 +8,7 @@
 
 //! Module containing functions for reading and writing XML.
 
-use base64;
+use base64::{Engine as _, engine::general_purpose as base64_engine};
 use crypto::salsa20::{self, Salsa20};
 use chrono::{DateTime, Utc};
 use compression::gzip;
@@ -51,7 +51,7 @@ pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Vec<u8>>> {
     match read_string_opt(reader)? {
         Some(string) => {
-            match base64::decode(&string) {
+            match base64_engine::STANDARD.decode(&string) {
                 Ok(bin) => Ok(Some(bin)),
                 Err(err) => read_err(reader, format!("Base64 {}", err)),
             }
@@ -317,7 +317,7 @@ pub fn search_attr_value(attrs: &Vec<OwnedAttribute>, name: &str) -> Option<Stri
 
 /// Attempts to write binary data.
 pub fn write_binary<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Result<()> {
-    write_string(writer, &base64::encode(&data))
+    write_string(writer, &base64_engine::STANDARD.encode(&data))
 }
 
 /// Attempts to write a tag that contains binary data.
@@ -326,7 +326,7 @@ pub fn write_binary_tag<W: Write>(
     tag: &str,
     value: &[u8],
 ) -> Result<()> {
-    write_string_tag(writer, tag, &base64::encode(&value))
+    write_string_tag(writer, tag, &base64_engine::STANDARD.encode(&value))
 }
 
 /// Attempts to write a tag that contains optional boolean data.
