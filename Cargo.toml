@@ -17,7 +17,7 @@ name = "kpdb"
 base64 = "0.21.0"
 byteorder = "1.4.3"
 chrono = "0.4.23"
-flate2 = "0.2.20"
+flate2 = "1.0.25"
 hex = "0.4.3"
 rand = { version = "0.8.5", features = ["std"] }
 rust-crypto = "0.2.36"
