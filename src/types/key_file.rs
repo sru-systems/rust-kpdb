@@ -38,7 +38,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_binary());
+    /// let key = KeyFile::new_binary()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -59,7 +59,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_hex());
+    /// let key = KeyFile::new_hex()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -80,7 +80,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_xml());
+    /// let key = KeyFile::new_xml()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -102,8 +102,8 @@ impl KeyFile {
     /// use std::fs::File;
     ///
     /// # fn open_example() -> Result<()> {
-    /// let mut file = try!(File::open("passwords.key"));
-    /// let key = try!(KeyFile::open(&mut file));
+    /// let mut file = File::open("passwords.key")?;
+    /// let key = KeyFile::open(&mut file)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -121,10 +121,10 @@ impl KeyFile {
     /// use std::fs::File;
     ///
     /// # fn save_example() -> Result<()> {
-    /// let key = try!(KeyFile::new());
-    /// let mut file = try!(File::create("new.key"));
+    /// let key = KeyFile::new()?;
+    /// let mut file = File::create("new.key")?;
     ///
-    /// try!(key.save(&mut file));
+    /// key.save(&mut file)?;
     /// # Ok(())
     /// # }
     /// ```

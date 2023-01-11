@@ -27,7 +27,7 @@ impl Obfuscation {
     /// # use kpdb::ObfuscationError;
     ///
     /// # fn from_i32_example() -> Result<Obfuscation, ObfuscationError> {
-    /// let obfuscation = try!(Obfuscation::from_i32(0));
+    /// let obfuscation = Obfuscation::from_i32(0)?;
     /// # Ok(obfuscation)
     /// # }
     /// ```

@@ -12,7 +12,7 @@ use hex::encode;
 use std::io::Write;
 use super::{kf, xml};
 use crate::types::{KeyFile, KeyFileType, Result};
-use xml::writer::{EmitterConfig, EventWriter};
+use crate::xml::writer::{EmitterConfig, EventWriter};
 
 /// Attempts to write the key file to the writer.
 pub fn write<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {

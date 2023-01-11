@@ -28,8 +28,8 @@ impl CompositeKey {
     /// use std::fs::File;
     ///
     /// # fn from_both_example() -> Result<()> {
-    /// let mut file = try!(File::open("database.key"));
-    /// let key_file = try!(KeyFile::open(&mut file));
+    /// let mut file = File::open("database.key")?;
+    /// let key_file = KeyFile::open(&mut file)?;
     /// let key = CompositeKey::from_both("secret", key_file);
     /// # Ok(())
     /// # }
@@ -50,8 +50,8 @@ impl CompositeKey {
     /// use std::fs::File;
     ///
     /// # fn from_key_file_example() -> Result<()> {
-    /// let mut file = try!(File::open("database.key"));
-    /// let key_file = try!(KeyFile::open(&mut file));
+    /// let mut file = File::open("database.key")?;
+    /// let key_file = KeyFile::open(&mut file)?;
     /// let key = CompositeKey::from_key_file(key_file);
     /// # Ok(())
     /// # }

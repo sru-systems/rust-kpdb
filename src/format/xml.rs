@@ -26,10 +26,10 @@ use crate::types::Result;
 use crate::types::StringKey;
 use crate::types::StringValue;
 use uuid::Uuid;
-use xml::attribute::OwnedAttribute;
-use xml::common::Position;
-use xml::reader::{self, EventReader};
-use xml::writer::{self, EventWriter};
+use crate::xml::attribute::OwnedAttribute;
+use crate::xml::common::Position;
+use crate::xml::reader::{self, EventReader};
+use crate::xml::writer::{self, EventWriter};
 
 /// Attempts to read binary data.
 pub fn read_binary<R: Read>(reader: &mut EventReader<R>) -> Result<Vec<u8>> {

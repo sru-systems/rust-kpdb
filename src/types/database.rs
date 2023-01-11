@@ -429,9 +429,9 @@ impl Database {
     /// use std::fs::File;
     ///
     /// # fn open_example() -> Result<()> {
-    /// let mut file = try!(File::open("passwords.kdbx"));
+    /// let mut file = File::open("passwords.kdbx")?;
     /// let key = CompositeKey::from_password("password");
-    /// let db = try!(Database::open(&mut file, &key));
+    /// let db = Database::open(&mut file, &key)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -466,9 +466,9 @@ impl Database {
     /// # fn save_example() -> Result<()> {
     /// let key = CompositeKey::from_password("password");
     /// let db = Database::new(&key);
-    /// let mut file = try!(File::create("new.kdbx"));
+    /// let mut file = File::create("new.kdbx")?;
     ///
-    /// try!(db.save(&mut file));
+    /// db.save(&mut file)?;
     /// # Ok(())
     /// # }
     /// ```

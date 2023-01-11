@@ -231,7 +231,7 @@ impl Icon {
     /// # use kpdb::IconError;
     ///
     /// # fn from_i32_example() -> Result<Icon, IconError> {
-    /// let icon = try!(Icon::from_i32(0));
+    /// let icon = Icon::from_i32(0)?;
     /// # Ok(icon)
     /// # }
     /// ```

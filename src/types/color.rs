@@ -40,7 +40,7 @@ impl Color {
     /// # use kpdb::ColorError;
     ///
     /// # fn convert() -> Result<(), ColorError> {
-    /// let color = try!(Color::from_hex_string("#abcdef"));
+    /// let color = Color::from_hex_string("#abcdef")?;
     /// # Ok(())
     /// # }
     /// ```

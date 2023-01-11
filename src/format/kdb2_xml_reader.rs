@@ -31,8 +31,8 @@ use crate::types::StringKey;
 use crate::types::StringValue;
 use crate::types::Times;
 use crate::types::XmlData;
-use xml::attribute::OwnedAttribute;
-use xml::reader::{EventReader, XmlEvent};
+use crate::xml::attribute::OwnedAttribute;
+use crate::xml::reader::{EventReader, XmlEvent};
 
 /// Attempts to read the XML data from the reader.
 pub fn read<R: Read>(reader: &mut R, stream_key: &StreamKey) -> Result<XmlData> {

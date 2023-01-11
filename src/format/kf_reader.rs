@@ -13,7 +13,7 @@ use secstr::SecStr;
 use std::io::{Cursor, Read};
 use super::{kf, xml};
 use crate::types::{Error, KeyFile, KeyFileType, Result};
-use xml::reader::{EventReader, XmlEvent};
+use crate::xml::reader::{EventReader, XmlEvent};
 
 /// Attempts to read a key file from the reader.
 pub fn read<R: Read>(reader: &mut R) -> Result<KeyFile> {

@@ -29,7 +29,7 @@ use crate::types::StreamKey;
 use crate::types::StringKey;
 use crate::types::StringValue;
 use crate::types::Times;
-use xml::writer::{EmitterConfig, EventWriter, XmlEvent};
+use crate::xml::writer::{EmitterConfig, EventWriter, XmlEvent};
 
 /// Attempts to write the database's XML data to the writer.
 pub fn write<W: Write>(
