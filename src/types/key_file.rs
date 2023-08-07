@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crypto::random_gen::RandomGen;
-use format::{kf_reader, kf_writer};
+use crate::crypto::random_gen::RandomGen;
+use crate::format::{kf_reader, kf_writer};
 use secstr::SecStr;
 use std::io::{Read, Write};
 use super::key_file_type::KeyFileType;
@@ -143,7 +143,7 @@ impl KeyFile {
 mod tests {
 
     use super::*;
-    use types::KeyFileType;
+    use crate::types::KeyFileType;
 
     #[test]
     fn test_new_returns_xml_instance() {

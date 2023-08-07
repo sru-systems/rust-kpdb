@@ -8,7 +8,7 @@
 
 use rand::Rng;
 use rand::os::OsRng;
-use types::Result;
+use crate::types::Result;
 
 /// A cryptographic secure random number generator.
 pub struct RandomGen(OsRng);

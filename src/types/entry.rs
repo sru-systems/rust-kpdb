@@ -7,7 +7,7 @@
 // except according to those terms.
 
 use chrono::{DateTime, Utc};
-use ::{common, GroupUuid};
+use crate::{common, GroupUuid};
 use std::collections::HashMap;
 use std::str;
 use super::association::Association;
@@ -290,12 +290,12 @@ mod tests {
     use chrono::Utc;
     use std::collections::HashMap;
     use super::*;
-    use types::EntryUuid;
-    use types::Icon;
-    use types::Obfuscation;
-    use types::StringKey;
-    use types::StringsMap;
-    use utils::test::approx_equal_datetime;
+    use crate::types::EntryUuid;
+    use crate::types::Icon;
+    use crate::types::Obfuscation;
+    use crate::types::StringKey;
+    use crate::types::StringsMap;
+    use crate::utils::test::approx_equal_datetime;
 
     #[test]
     fn test_new_returns_correct_instance() {

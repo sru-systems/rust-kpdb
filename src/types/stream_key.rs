@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crypto::sha256;
+use crate::crypto::sha256;
 use super::protected_stream_key::ProtectedStreamKey;
 
 /// Key used for encrypting and decrypting the stream data.
@@ -29,7 +29,7 @@ impl StreamKey {
 mod tests {
 
     use super::*;
-    use types::ProtectedStreamKey;
+    use crate::types::ProtectedStreamKey;
 
     #[test]
     fn test_new_returns_correct_instance() {

@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crypto::sha256;
+use crate::crypto::sha256;
 use secstr::SecStr;
 use super::master_seed::MasterSeed;
 use super::transformed_key::TransformedKey;
@@ -43,7 +43,7 @@ impl MasterKey {
 mod tests {
 
     use super::*;
-    use types::{CompositeKey, MasterSeed, TransformRounds, TransformSeed, TransformedKey};
+    use crate::types::{CompositeKey, MasterSeed, TransformRounds, TransformSeed, TransformedKey};
 
     #[test]
     fn test_new_returns_correct_instance() {

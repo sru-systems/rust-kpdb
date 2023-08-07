@@ -6,12 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rust_crypto::symmetriccipher::SynchronousStreamCipher;
-use types::StreamKey;
+use crate::rust_crypto::symmetriccipher::SynchronousStreamCipher;
+use crate::types::StreamKey;
 
 const SALSA20_NOUNCE: [u8; 8] = [0xe8, 0x30, 0x09, 0x4b, 0x97, 0x20, 0x5d, 0x2a];
 
-pub use rust_crypto::salsa20::Salsa20;
+pub use crate::rust_crypto::salsa20::Salsa20;
 
 /// Decrypt the input using the Salsa20 stream cipher.
 pub fn decrypt(cipher: &mut Salsa20, input: &Vec<u8>) -> Vec<u8> {
@@ -38,8 +38,8 @@ fn process(cipher: &mut Salsa20, input: &Vec<u8>) -> Vec<u8> {
 mod tests {
 
     use super::*;
-    use types::ProtectedStreamKey;
-    use types::StreamKey;
+    use crate::types::ProtectedStreamKey;
+    use crate::types::StreamKey;
 
     quickcheck! {
         fn test_decrypt_inverses_encrypt(data: Vec<u8>) -> bool {

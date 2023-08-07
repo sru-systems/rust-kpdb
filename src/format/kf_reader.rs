@@ -12,7 +12,7 @@ use hex::FromHex;
 use secstr::SecStr;
 use std::io::{Cursor, Read};
 use super::{kf, xml};
-use types::{Error, KeyFile, KeyFileType, Result};
+use crate::types::{Error, KeyFile, KeyFileType, Result};
 use xml::reader::{EventReader, XmlEvent};
 
 /// Attempts to read a key file from the reader.

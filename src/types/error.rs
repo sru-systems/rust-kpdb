@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rust_crypto::symmetriccipher::SymmetricCipherError;
+use crate::rust_crypto::symmetriccipher::SymmetricCipherError;
 use std::error;
 use std::fmt;
 use std::io;

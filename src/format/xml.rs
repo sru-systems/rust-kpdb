@@ -9,22 +9,22 @@
 //! Module containing functions for reading and writing XML.
 
 use base64;
-use crypto::salsa20::{self, Salsa20};
+use crate::crypto::salsa20::{self, Salsa20};
 use chrono::{DateTime, Utc};
-use compression::gzip;
+use crate::compression::gzip;
 use secstr::SecStr;
 use std::io::{Read, Write};
-use types::BinaryId;
-use types::BinaryKey;
-use types::BinaryValue;
-use types::Color;
-use types::CustomIconUuid;
-use types::Error;
-use types::Icon;
-use types::Obfuscation;
-use types::Result;
-use types::StringKey;
-use types::StringValue;
+use crate::types::BinaryId;
+use crate::types::BinaryKey;
+use crate::types::BinaryValue;
+use crate::types::Color;
+use crate::types::CustomIconUuid;
+use crate::types::Error;
+use crate::types::Icon;
+use crate::types::Obfuscation;
+use crate::types::Result;
+use crate::types::StringKey;
+use crate::types::StringValue;
 use uuid::Uuid;
 use xml::attribute::OwnedAttribute;
 use xml::common::Position;

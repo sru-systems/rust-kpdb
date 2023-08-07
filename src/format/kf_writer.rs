@@ -11,7 +11,7 @@
 use hex::ToHex;
 use std::io::Write;
 use super::{kf, xml};
-use types::{KeyFile, KeyFileType, Result};
+use crate::types::{KeyFile, KeyFileType, Result};
 use xml::writer::{EmitterConfig, EventWriter};
 
 /// Attempts to write the key file to the writer.

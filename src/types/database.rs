@@ -7,9 +7,9 @@
 // except according to those terms.
 
 use chrono::{DateTime, Utc};
-use common;
-use format::{kdb2_reader, kdb2_writer};
-use io::{Log, LogReader, LogWriter};
+use crate::common;
+use crate::format::{kdb2_reader, kdb2_writer};
+use crate::io::{Log, LogReader, LogWriter};
 use std::io::{Read, Write};
 use super::binaries_map::BinariesMap;
 use super::color::Color;
@@ -561,18 +561,18 @@ mod tests {
 
     use chrono::Utc;
     use super::*;
-    use types::BinariesMap;
-    use types::CompositeKey;
-    use types::Compression;
-    use types::CustomDataMap;
-    use types::CustomIconsMap;
-    use types::DbType;
-    use types::GroupUuid;
-    use types::MasterCipher;
-    use types::StreamCipher;
-    use types::TransformRounds;
-    use types::Version;
-    use utils::test::approx_equal_datetime;
+    use crate::types::BinariesMap;
+    use crate::types::CompositeKey;
+    use crate::types::Compression;
+    use crate::types::CustomDataMap;
+    use crate::types::CustomIconsMap;
+    use crate::types::DbType;
+    use crate::types::GroupUuid;
+    use crate::types::MasterCipher;
+    use crate::types::StreamCipher;
+    use crate::types::TransformRounds;
+    use crate::types::Version;
+    use crate::utils::test::approx_equal_datetime;
 
     #[test]
     fn test_new_returns_correct_instance() {

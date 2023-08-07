@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use common;
+use crate::common;
 
 /// The database version.
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]

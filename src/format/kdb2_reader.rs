@@ -9,33 +9,33 @@
 //! The database reader for KeePass 2 databases.
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use compression::gzip;
-use crypto::aes256;
-use crypto::sha256;
-use io::Log;
+use crate::compression::gzip;
+use crate::crypto::aes256;
+use crate::crypto::sha256;
+use crate::io::Log;
 use std::io::{Cursor, Read};
 use super::kdb2;
 use super::kdb2_xml_reader;
-use types::Comment;
-use types::CompositeKey;
-use types::Compression;
-use types::Error;
-use types::HeaderHash;
-use types::MasterCipher;
-use types::MasterIV;
-use types::MasterKey;
-use types::MasterSeed;
-use types::MetaData;
-use types::ProtectedStreamKey;
-use types::Result;
-use types::StreamCipher;
-use types::StreamKey;
-use types::StreamStartBytes;
-use types::TransformRounds;
-use types::TransformSeed;
-use types::TransformedKey;
-use types::Version;
-use types::XmlData;
+use crate::types::Comment;
+use crate::types::CompositeKey;
+use crate::types::Compression;
+use crate::types::Error;
+use crate::types::HeaderHash;
+use crate::types::MasterCipher;
+use crate::types::MasterIV;
+use crate::types::MasterKey;
+use crate::types::MasterSeed;
+use crate::types::MetaData;
+use crate::types::ProtectedStreamKey;
+use crate::types::Result;
+use crate::types::StreamCipher;
+use crate::types::StreamKey;
+use crate::types::StreamStartBytes;
+use crate::types::TransformRounds;
+use crate::types::TransformSeed;
+use crate::types::TransformedKey;
+use crate::types::Version;
+use crate::types::XmlData;
 
 /// Attempts to read the database content from the reader.
 pub fn read<R>(reader: &mut R, composite_key: &CompositeKey) -> Result<(MetaData, XmlData)>

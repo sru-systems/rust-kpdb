@@ -8,27 +8,27 @@
 
 //! The XML writer for KeePass 2 databases.
 
-use common;
-use crypto::salsa20::{self, Salsa20};
+use crate::common;
+use crate::crypto::salsa20::{self, Salsa20};
 use std::io::Write;
 use super::{kdb2, xml};
-use types::Association;
-use types::BinariesMap;
-use types::BinaryKey;
-use types::BinaryValue;
-use types::CustomDataMap;
-use types::CustomIconUuid;
-use types::CustomIconsMap;
-use types::Database;
-use types::Entry;
-use types::EntryState;
-use types::Group;
-use types::HeaderHash;
-use types::Result;
-use types::StreamKey;
-use types::StringKey;
-use types::StringValue;
-use types::Times;
+use crate::types::Association;
+use crate::types::BinariesMap;
+use crate::types::BinaryKey;
+use crate::types::BinaryValue;
+use crate::types::CustomDataMap;
+use crate::types::CustomIconUuid;
+use crate::types::CustomIconsMap;
+use crate::types::Database;
+use crate::types::Entry;
+use crate::types::EntryState;
+use crate::types::Group;
+use crate::types::HeaderHash;
+use crate::types::Result;
+use crate::types::StreamKey;
+use crate::types::StringKey;
+use crate::types::StringValue;
+use crate::types::Times;
 use xml::writer::{EmitterConfig, EventWriter, XmlEvent};
 
 /// Attempts to write the database's XML data to the writer.

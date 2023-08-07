@@ -6,7 +6,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crypto::sha256;
+use crate::crypto::sha256;
 use secstr::SecStr;
 use super::KeyFile;
 
@@ -96,7 +96,7 @@ mod tests {
 
     use secstr::SecStr;
     use super::*;
-    use types::{KeyFile, KeyFileType};
+    use crate::types::{KeyFile, KeyFileType};
 
     #[test]
     fn test_from_both_returns_correct_instance() {

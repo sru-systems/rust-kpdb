@@ -10,7 +10,7 @@ use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use std::io::{Read, Write};
-use types::Result;
+use crate::types::Result;
 
 /// Decode (decompress) the input using GZip.
 pub fn decode(input: &[u8]) -> Result<Vec<u8>> {
