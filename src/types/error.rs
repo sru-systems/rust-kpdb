@@ -129,29 +129,6 @@ impl fmt::Display for Error {
 }
 
 impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::CryptoError(_) => "crypto error",
-            Error::InvalidBlockHash => "invalid block hash",
-            Error::InvalidBlockId(_) => "invalid block id",
-            Error::InvalidDbSignature(_) => "invalid database signature",
-            Error::InvalidFinalBlockHash(_) => "invalid final block hash",
-            Error::InvalidHeaderSize { .. } => "invalid header size",
-            Error::InvalidHeaderHash => "invalid header hash",
-            Error::InvalidKey => "invalid key",
-            Error::InvalidKeyFile => "invalid key file",
-            Error::Io(ref err) => err.description(),
-            Error::MissingHeader(_) => "missing header",
-            Error::UnhandledCompression(_) => "unhandled compression",
-            Error::UnhandledDbType(_) => "unhandled database type",
-            Error::UnhandledHeader(_) => "unhandled header",
-            Error::UnhandledMasterCipher(_) => "unhandled master cipher",
-            Error::UnhandledStreamCipher(_) => "unhandled stream cipher",
-            Error::Unimplemented(_) => "unimplemented",
-            Error::XmlError(_) => "xml error",
-        }
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Io(ref err) => Some(err),
