@@ -5,6 +5,18 @@ This documents all notable changes to
 [rust-kpdb](https://github.com/sru-systems/rust-kpdb).
 
 
+## 0.5.0
+
+- Update xml-rs dependency to 0.8.
+- Update secstr dependency to 0.5.1.
+- Update rand dependency to 0.8.5.
+- Update hex dependency to 0.4.3.
+- Update flate2 dependency to 1.0.
+- Update base64 dependency to 0.21.2.
+- Update to Rust edition 2021.
+- Fix deprecation warnings.
+
+
 ## 0.4.2
 
 - Add Display trait to EntryUUID and GroupUUID
