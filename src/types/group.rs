@@ -6,15 +6,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, Utc};
-use std::collections::vec_deque::VecDeque;
-use std::ptr;
 use super::custom_icon_uuid::CustomIconUuid;
 use super::entry::Entry;
 use super::entry_uuid::EntryUuid;
 use super::group_uuid::GroupUuid;
 use super::icon::Icon;
 use super::times::Times;
+use chrono::{DateTime, Utc};
+use std::collections::vec_deque::VecDeque;
+use std::ptr;
 
 /// A group in the database.
 #[derive(Clone, Debug, PartialEq)]
@@ -376,12 +376,12 @@ impl<'a> Iterator for IterMut<'a> {
 #[cfg(test)]
 mod tests {
 
-    use chrono::Utc;
     use super::*;
     use crate::types::EntryUuid;
     use crate::types::GroupUuid;
     use crate::types::Icon;
     use crate::utils::test::approx_equal_datetime;
+    use chrono::Utc;
 
     #[test]
     fn test_new_returns_correct_instance() {

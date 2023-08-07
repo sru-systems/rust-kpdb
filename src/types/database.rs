@@ -6,11 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, Utc};
-use crate::common;
-use crate::format::{kdb2_reader, kdb2_writer};
-use crate::io::{Log, LogReader, LogWriter};
-use std::io::{Read, Write};
 use super::binaries_map::BinariesMap;
 use super::color::Color;
 use super::comment::Comment;
@@ -30,6 +25,11 @@ use super::stream_cipher::StreamCipher;
 use super::string_value::StringValue;
 use super::transform_rounds::TransformRounds;
 use super::version::Version;
+use crate::common;
+use crate::format::{kdb2_reader, kdb2_writer};
+use crate::io::{Log, LogReader, LogWriter};
+use chrono::{DateTime, Utc};
+use std::io::{Read, Write};
 
 /// The KeePass database.
 #[derive(Clone, Debug, PartialEq)]
@@ -240,7 +240,6 @@ impl Database {
         list
     }
 
-
     /// Returns a vector with mutable entries that match (case insensitive) the supplied text.
     ///
     /// # Examples
@@ -429,9 +428,9 @@ impl Database {
     /// use std::fs::File;
     ///
     /// # fn open_example() -> Result<()> {
-    /// let mut file = try!(File::open("passwords.kdbx"));
+    /// let mut file = File::open("passwords.kdbx")?;
     /// let key = CompositeKey::from_password("password");
-    /// let db = try!(Database::open(&mut file, &key));
+    /// let db = Database::open(&mut file, &key)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -466,9 +465,9 @@ impl Database {
     /// # fn save_example() -> Result<()> {
     /// let key = CompositeKey::from_password("password");
     /// let db = Database::new(&key);
-    /// let mut file = try!(File::create("new.kdbx"));
+    /// let mut file = File::create("new.kdbx")?;
     ///
-    /// try!(db.save(&mut file));
+    /// db.save(&mut file);
     /// # Ok(())
     /// # }
     /// ```
@@ -559,7 +558,6 @@ fn entry_contains_string(entry: &Entry, name: &String) -> bool {
 #[cfg(test)]
 mod tests {
 
-    use chrono::Utc;
     use super::*;
     use crate::types::BinariesMap;
     use crate::types::CompositeKey;
@@ -573,6 +571,7 @@ mod tests {
     use crate::types::TransformRounds;
     use crate::types::Version;
     use crate::utils::test::approx_equal_datetime;
+    use chrono::Utc;
 
     #[test]
     fn test_new_returns_correct_instance() {

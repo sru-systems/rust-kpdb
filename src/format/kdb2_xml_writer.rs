@@ -8,10 +8,9 @@
 
 //! The XML writer for KeePass 2 databases.
 
+use super::{kdb2, xml};
 use crate::common;
 use crate::crypto::salsa20::{self, Salsa20};
-use std::io::Write;
-use super::{kdb2, xml};
 use crate::types::Association;
 use crate::types::BinariesMap;
 use crate::types::BinaryKey;
@@ -29,7 +28,8 @@ use crate::types::StreamKey;
 use crate::types::StringKey;
 use crate::types::StringValue;
 use crate::types::Times;
-use xml::writer::{EmitterConfig, EventWriter, XmlEvent};
+use rust_xml::writer::{EmitterConfig, EventWriter, XmlEvent};
+use std::io::Write;
 
 /// Attempts to write the database's XML data to the writer.
 pub fn write<W: Write>(
@@ -39,9 +39,9 @@ pub fn write<W: Write>(
     key: &StreamKey,
 ) -> Result<()> {
     let mut cipher = salsa20::new_cipher(key);
-    let config = EmitterConfig::new().perform_indent(true).indent_string(
-        "\t",
-    );
+    let config = EmitterConfig::new()
+        .perform_indent(true)
+        .indent_string("\t");
 
     {
         let mut writer = EventWriter::new_with_config(writer, config);
@@ -113,7 +113,6 @@ fn write_binary_section<W: Write>(
     xml::write_end_tag(writer)
 }
 
-
 fn write_binaries_section<W: Write>(
     writer: &mut EventWriter<W>,
     binaries: &BinariesMap,
@@ -184,11 +183,7 @@ fn write_entry_section<W: Write>(
     xml::write_uuid_tag(writer, kdb2::UUID_TAG, &entry.uuid.0)?;
     write_auto_type_section(writer, entry)?;
     xml::write_color_tag(writer, kdb2::BACKGROUND_COLOR_TAG, &entry.background_color)?;
-    xml::write_custom_icon_uuid_tag(
-        writer,
-        kdb2::CUSTOM_ICON_UUID_TAG,
-        &entry.custom_icon_uuid,
-    )?;
+    xml::write_custom_icon_uuid_tag(writer, kdb2::CUSTOM_ICON_UUID_TAG, &entry.custom_icon_uuid)?;
     xml::write_color_tag(writer, kdb2::FOREGROUND_COLOR_TAG, &entry.foreground_color)?;
     xml::write_i32_tag(writer, kdb2::ICON_ID_TAG, entry.icon.to_i32())?;
     xml::write_string_tag(writer, kdb2::OVERRIDE_URL_TAG, &entry.override_url)?;
@@ -225,11 +220,7 @@ fn write_group_section<W: Write>(
     xml::write_bool_opt_tag(writer, kdb2::ENABLE_SEARCHING_TAG, &group.enable_searching)?;
     xml::write_i32_tag(writer, kdb2::ICON_ID_TAG, group.icon.to_i32())?;
     xml::write_bool_tag(writer, kdb2::IS_EXPANDED_TAG, group.is_expanded)?;
-    xml::write_uuid_tag(
-        writer,
-        kdb2::LAST_TOP_VISIBLE_ENTRY_TAG,
-        &group.last_top_visible_entry.0,
-    )?;
+    xml::write_uuid_tag(writer, kdb2::LAST_TOP_VISIBLE_ENTRY_TAG, &group.last_top_visible_entry.0)?;
     xml::write_string_tag(writer, kdb2::NAME_TAG, &group.name)?;
     xml::write_string_tag(writer, kdb2::NOTES_TAG, &group.notes)?;
     write_times_section(writer, group)?;
@@ -301,16 +292,8 @@ fn write_meta_section<W: Write>(
     xml::write_string_tag(writer, kdb2::DATABASE_NAME_TAG, &db.name)?;
     xml::write_datetime_tag(writer, kdb2::DATABASE_NAME_CHANGED_TAG, &db.name_changed)?;
     xml::write_string_tag(writer, kdb2::DEFAULT_USERNAME_TAG, &db.def_username)?;
-    xml::write_datetime_tag(
-        writer,
-        kdb2::DEFAULT_USERNAME_CHANGED_TAG,
-        &db.def_username_changed,
-    )?;
-    xml::write_uuid_tag(
-        writer,
-        kdb2::ENTRY_TEMPLATES_GROUP_TAG,
-        &db.entry_templates_group_uuid.0,
-    )?;
+    xml::write_datetime_tag(writer, kdb2::DEFAULT_USERNAME_CHANGED_TAG, &db.def_username_changed)?;
+    xml::write_uuid_tag(writer, kdb2::ENTRY_TEMPLATES_GROUP_TAG, &db.entry_templates_group_uuid.0)?;
     xml::write_datetime_tag(
         writer,
         kdb2::ENTRY_TEMPLATES_GROUP_CHANGED_TAG,
@@ -321,16 +304,8 @@ fn write_meta_section<W: Write>(
     xml::write_i32_tag(writer, kdb2::HISTORY_MAX_ITEMS_TAG, db.history_max_items)?;
     xml::write_i32_tag(writer, kdb2::HISTORY_MAX_SIZE_TAG, db.history_max_size)?;
     xml::write_uuid_tag(writer, kdb2::LAST_SELECTED_GROUP_TAG, &db.last_selected_group.0)?;
-    xml::write_uuid_tag(
-        writer,
-        kdb2::LAST_TOP_VISIBLE_GROUP_TAG,
-        &db.last_top_visible_group.0,
-    )?;
-    xml::write_i32_tag(
-        writer,
-        kdb2::MAINTENANCE_HISTORY_DAYS_TAG,
-        db.maintenance_history_days,
-    )?;
+    xml::write_uuid_tag(writer, kdb2::LAST_TOP_VISIBLE_GROUP_TAG, &db.last_top_visible_group.0)?;
+    xml::write_i32_tag(writer, kdb2::MAINTENANCE_HISTORY_DAYS_TAG, db.maintenance_history_days)?;
     xml::write_i32_tag(writer, kdb2::MASTER_KEY_CHANGE_FORCE_TAG, db.master_key_change_force)?;
     xml::write_i32_tag(writer, kdb2::MASTER_KEY_CHANGE_REC_TAG, db.master_key_change_rec)?;
     xml::write_datetime_tag(writer, kdb2::MASTER_KEY_CHANGED_TAG, &db.master_key_changed)?;

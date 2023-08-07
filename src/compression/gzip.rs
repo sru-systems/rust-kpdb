@@ -6,11 +6,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use flate2::Compression;
+use crate::types::Result;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 use std::io::{Read, Write};
-use crate::types::Result;
 
 /// Decode (decompress) the input using GZip.
 pub fn decode(input: &[u8]) -> Result<Vec<u8>> {

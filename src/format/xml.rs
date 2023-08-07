@@ -8,12 +8,8 @@
 
 //! Module containing functions for reading and writing XML.
 
-use base64;
-use crate::crypto::salsa20::{self, Salsa20};
-use chrono::{DateTime, Utc};
 use crate::compression::gzip;
-use secstr::SecStr;
-use std::io::{Read, Write};
+use crate::crypto::salsa20::{self, Salsa20};
 use crate::types::BinaryId;
 use crate::types::BinaryKey;
 use crate::types::BinaryValue;
@@ -25,6 +21,10 @@ use crate::types::Obfuscation;
 use crate::types::Result;
 use crate::types::StringKey;
 use crate::types::StringValue;
+use base64;
+use chrono::{DateTime, Utc};
+use secstr::SecStr;
+use std::io::{Read, Write};
 use uuid::Uuid;
 use xml::attribute::OwnedAttribute;
 use xml::common::Position;
@@ -50,12 +50,10 @@ pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 /// Attempts to read optional binary data.
 pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Vec<u8>>> {
     match read_string_opt(reader)? {
-        Some(string) => {
-            match base64::decode(&string) {
-                Ok(bin) => Ok(Some(bin)),
-                Err(err) => read_err(reader, format!("Base64 {}", err)),
-            }
-        }
+        Some(string) => match base64::decode(&string) {
+            Ok(bin) => Ok(Some(bin)),
+            Err(err) => read_err(reader, format!("Base64 {}", err)),
+        },
         None => Ok(None),
     }
 }
@@ -70,26 +68,24 @@ pub fn read_binary_value_opt<R: Read>(
     let protected = get_protected_attr_value(reader, attrs)?;
     match ref_value {
         Some(string) => Ok(Some(BinaryValue::Ref(BinaryId(string)))),
-        None => {
-            match read_binary_opt(reader)? {
-                Some(bytes) => {
-                    if protected {
-                        let pbytes = salsa20::decrypt(cipher, &bytes);
-                        let secstr = SecStr::new(pbytes);
-                        Ok(Some(BinaryValue::Protected(secstr)))
-                    } else {
-                        Ok(Some(BinaryValue::Plain(bytes)))
-                    }
-                }
-                None => {
-                    if protected {
-                        Ok(Some(BinaryValue::Protected(SecStr::new(Vec::new()))))
-                    } else {
-                        Ok(Some(BinaryValue::Plain(Vec::new())))
-                    }
+        None => match read_binary_opt(reader)? {
+            Some(bytes) => {
+                if protected {
+                    let pbytes = salsa20::decrypt(cipher, &bytes);
+                    let secstr = SecStr::new(pbytes);
+                    Ok(Some(BinaryValue::Protected(secstr)))
+                } else {
+                    Ok(Some(BinaryValue::Plain(bytes)))
                 }
             }
-        }
+            None => {
+                if protected {
+                    Ok(Some(BinaryValue::Protected(SecStr::new(Vec::new()))))
+                } else {
+                    Ok(Some(BinaryValue::Plain(Vec::new())))
+                }
+            }
+        },
     }
 }
 
@@ -104,14 +100,12 @@ pub fn read_bool<R: Read>(reader: &mut EventReader<R>) -> Result<bool> {
 /// Attempts to read an optional boolean.
 pub fn read_bool_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<bool>> {
     match read_string_opt(reader)? {
-        Some(string) => {
-            match string.to_lowercase().as_str() {
-                "false" => Ok(Some(false)),
-                "null" => Ok(None),
-                "true" => Ok(Some(true)),
-                val => read_err(reader, format!("Bool invalid value: {}", val)),
-            }
-        }
+        Some(string) => match string.to_lowercase().as_str() {
+            "false" => Ok(Some(false)),
+            "null" => Ok(None),
+            "true" => Ok(Some(true)),
+            val => read_err(reader, format!("Bool invalid value: {}", val)),
+        },
         None => Ok(None),
     }
 }
@@ -119,12 +113,10 @@ pub fn read_bool_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<bool
 /// Attempts to read an optional color.
 pub fn read_color_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Color>> {
     match read_string_opt(reader)? {
-        Some(string) => {
-            match Color::from_hex_string(&string) {
-                Ok(color) => Ok(Some(color)),
-                Err(err) => read_err(reader, format!("Color {}", err)),
-            }
-        }
+        Some(string) => match Color::from_hex_string(&string) {
+            Ok(color) => Ok(Some(color)),
+            Err(err) => read_err(reader, format!("Color {}", err)),
+        },
         None => Ok(None),
     }
 }
@@ -142,12 +134,10 @@ pub fn read_custom_icon_uuid_opt<R: Read>(
 /// Attempts to read a date and time.
 pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<Utc>> {
     match read_string_opt(reader)? {
-        Some(string) => {
-            match string.parse::<DateTime<Utc>>() {
-                Ok(datetime) => Ok(datetime),
-                Err(err) => read_err(reader, format!("DateTime {}", err)),
-            }
-        }
+        Some(string) => match string.parse::<DateTime<Utc>>() {
+            Ok(datetime) => Ok(datetime),
+            Err(err) => read_err(reader, format!("DateTime {}", err)),
+        },
         None => read_err(reader, "No DateTime value found"),
     }
 }
@@ -186,12 +176,10 @@ pub fn read_i32<R: Read>(reader: &mut EventReader<R>) -> Result<i32> {
 /// Attempts to read an optional i32.
 pub fn read_i32_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<i32>> {
     match read_string_opt(reader)? {
-        Some(string) => {
-            match string.parse::<i32>() {
-                Ok(num) => Ok(Some(num)),
-                Err(err) => read_err(reader, format!("Number {}", err)),
-            }
-        }
+        Some(string) => match string.parse::<i32>() {
+            Ok(num) => Ok(Some(num)),
+            Err(err) => read_err(reader, format!("Number {}", err)),
+        },
         None => Ok(None),
     }
 }
@@ -199,12 +187,10 @@ pub fn read_i32_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<i32>>
 /// Attempts to read an icon.
 pub fn read_icon<R: Read>(reader: &mut EventReader<R>) -> Result<Icon> {
     match read_i32_opt(reader)? {
-        Some(num) => {
-            match Icon::from_i32(num) {
-                Ok(icon) => Ok(icon),
-                Err(err) => read_err(reader, format!("{}", err)),
-            }
-        }
+        Some(num) => match Icon::from_i32(num) {
+            Ok(icon) => Ok(icon),
+            Err(err) => read_err(reader, format!("{}", err)),
+        },
         None => read_err(reader, "No Icon value found"),
     }
 }
@@ -212,12 +198,10 @@ pub fn read_icon<R: Read>(reader: &mut EventReader<R>) -> Result<Icon> {
 /// Attempts to read an obfuscation type.
 pub fn read_obfuscation<R: Read>(reader: &mut EventReader<R>) -> Result<Obfuscation> {
     match read_i32_opt(reader)? {
-        Some(num) => {
-            match Obfuscation::from_i32(num) {
-                Ok(val) => Ok(val),
-                Err(err) => read_err(reader, format!("{}", err)),
-            }
-        }
+        Some(num) => match Obfuscation::from_i32(num) {
+            Ok(val) => Ok(val),
+            Err(err) => read_err(reader, format!("{}", err)),
+        },
         None => read_err(reader, "No Obfuscation value found"),
     }
 }
@@ -245,14 +229,14 @@ pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<St
         reader::XmlEvent::Characters(val) => Ok(Some(val)),
         reader::XmlEvent::EndElement { .. } => Ok(None),
         _ => {
-            let _: Result<Option<String>> = read_err(reader, "No characters found")
-                .map_err(|err| {
+            let _: Result<Option<String>> =
+                read_err(reader, "No characters found").map_err(|err| {
                     eprintln!("{}", err);
                     err
                 });
             Ok(None)
-        },
-//        _ => read_err(reader, "No characters found"),
+        }
+        //        _ => read_err(reader, "No characters found"),
     }
 }
 
@@ -295,12 +279,10 @@ pub fn read_uuid<R: Read>(reader: &mut EventReader<R>) -> Result<Uuid> {
 /// Attempts to read an optional UUID.
 pub fn read_uuid_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Uuid>> {
     match read_binary_opt(reader)? {
-        Some(bytes) => {
-            match Uuid::from_bytes(&bytes) {
-                Ok(uuid) => Ok(Some(uuid)),
-                Err(err) => read_err(reader, format!("UUID {}", err)),
-            }
-        }
+        Some(bytes) => match Uuid::from_bytes(&bytes) {
+            Ok(uuid) => Ok(Some(uuid)),
+            Err(err) => read_err(reader, format!("UUID {}", err)),
+        },
         None => Ok(None),
     }
 }
@@ -438,12 +420,10 @@ fn get_protect_in_memory_attr_value<R: Read>(
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match search_attr_value(attrs, "protectinmemory") {
-        Some(string) => {
-            match string.to_lowercase().parse::<bool>() {
-                Ok(val) => Ok(val),
-                Err(_) => read_err(reader, "Attribute ProtectInMemory invalid value"),
-            }
-        }
+        Some(string) => match string.to_lowercase().parse::<bool>() {
+            Ok(val) => Ok(val),
+            Err(_) => read_err(reader, "Attribute ProtectInMemory invalid value"),
+        },
         None => Ok(false),
     }
 }
@@ -453,12 +433,10 @@ fn get_protected_attr_value<R: Read>(
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match search_attr_value(attrs, "protected") {
-        Some(string) => {
-            match string.to_lowercase().parse::<bool>() {
-                Ok(val) => Ok(val),
-                Err(_) => read_err(reader, "Attribute Protected invalid value"),
-            }
-        }
+        Some(string) => match string.to_lowercase().parse::<bool>() {
+            Ok(val) => Ok(val),
+            Err(_) => read_err(reader, "Attribute Protected invalid value"),
+        },
         None => Ok(false),
     }
 }

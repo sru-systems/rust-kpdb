@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::io::{Read, Result};
 use super::log::Log;
+use std::io::{Read, Result};
 
 /// A reader that logs the read data.
 pub struct LogReader<R> {
@@ -58,9 +58,9 @@ impl<R: Read> Read for LogReader<R> {
 #[cfg(test)]
 mod tests {
 
-    use std::io::{Cursor, Read};
     use super::*;
     use crate::io::Log;
+    use std::io::{Cursor, Read};
 
     #[test]
     fn test_clear_clears_logged_data() {

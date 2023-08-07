@@ -6,8 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, Utc};
-use crate::common;
 use super::binaries_map::BinariesMap;
 use super::color::Color;
 use super::custom_data_map::CustomDataMap;
@@ -15,6 +13,8 @@ use super::custom_icons_map::CustomIconsMap;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
 use super::header_hash::HeaderHash;
+use crate::common;
+use chrono::{DateTime, Utc};
 
 /// Represents the XML data of the database.
 #[derive(Clone, Debug, PartialEq)]
@@ -153,13 +153,13 @@ impl Default for XmlData {
 #[cfg(test)]
 mod tests {
 
-    use chrono::Utc;
     use super::*;
     use crate::types::BinariesMap;
     use crate::types::CustomDataMap;
     use crate::types::CustomIconsMap;
     use crate::types::GroupUuid;
     use crate::utils::test::approx_equal_datetime;
+    use chrono::Utc;
 
     #[test]
     fn test_default_returns_correct_instance() {

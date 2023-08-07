@@ -8,7 +8,9 @@
 
 use crate::rust_crypto::aes::{self, KeySize};
 use crate::rust_crypto::blockmodes::PkcsPadding;
-use crate::rust_crypto::buffer::{BufferResult, ReadBuffer, RefReadBuffer, RefWriteBuffer, WriteBuffer};
+use crate::rust_crypto::buffer::{
+    BufferResult, ReadBuffer, RefReadBuffer, RefWriteBuffer, WriteBuffer,
+};
 use crate::types::{MasterIV, MasterKey, Result};
 
 /// Decrypt the input using the key and initialization vector.

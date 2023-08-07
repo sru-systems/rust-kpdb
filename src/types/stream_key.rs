@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use crate::crypto::sha256;
 use super::protected_stream_key::ProtectedStreamKey;
+use crate::crypto::sha256;
 
 /// Key used for encrypting and decrypting the stream data.
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -35,38 +35,8 @@ mod tests {
     fn test_new_returns_correct_instance() {
         let protected_stream_key = ProtectedStreamKey([1u8; 32]);
         let array = [
-            114,
-            205,
-            110,
-            132,
-            34,
-            196,
-            7,
-            251,
-            109,
-            9,
-            134,
-            144,
-            241,
-            19,
-            11,
-            125,
-            237,
-            126,
-            194,
-            247,
-            245,
-            225,
-            211,
-            11,
-            217,
-            213,
-            33,
-            240,
-            21,
-            54,
-            55,
-            147,
+            114, 205, 110, 132, 34, 196, 7, 251, 109, 9, 134, 144, 241, 19, 11, 125, 237, 126, 194,
+            247, 245, 225, 211, 11, 217, 213, 33, 240, 21, 54, 55, 147,
         ];
         let expected = StreamKey(array);
         let actual = StreamKey::new(&protected_stream_key);

@@ -6,10 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use chrono::{DateTime, Utc};
-use crate::{common, GroupUuid};
-use std::collections::HashMap;
-use std::str;
 use super::association::Association;
 use super::binary_key::BinaryKey;
 use super::binary_value::BinaryValue;
@@ -22,6 +18,10 @@ use super::string_key::StringKey;
 use super::string_value::StringValue;
 use super::strings_map::StringsMap;
 use super::times::Times;
+use crate::{common, GroupUuid};
+use chrono::{DateTime, Utc};
+use std::collections::HashMap;
+use std::str;
 
 /// An entry in the database.
 #[derive(Clone, Debug, PartialEq)]
@@ -122,13 +122,8 @@ impl Entry {
 
     /// Sets the notes string value.
     pub fn set_notes<S: Into<String>>(&mut self, val: S) {
-        self.strings.insert(
-            StringKey::Notes,
-            StringValue::new(
-                val,
-                common::PROTECT_NOTES_DEFAULT,
-            ),
-        );
+        self.strings
+            .insert(StringKey::Notes, StringValue::new(val, common::PROTECT_NOTES_DEFAULT));
     }
 
     /// Sets an other string value.
@@ -138,46 +133,26 @@ impl Entry {
 
     /// Sets the password string value.
     pub fn set_password<S: Into<String>>(&mut self, val: S) {
-        self.strings.insert(
-            StringKey::Password,
-            StringValue::new(
-                val,
-                common::PROTECT_PASSWORD_DEFAULT,
-            ),
-        );
+        self.strings
+            .insert(StringKey::Password, StringValue::new(val, common::PROTECT_PASSWORD_DEFAULT));
     }
 
     /// Sets the title string value.
     pub fn set_title<S: Into<String>>(&mut self, val: S) {
-        self.strings.insert(
-            StringKey::Title,
-            StringValue::new(
-                val,
-                common::PROTECT_TITLE_DEFAULT,
-            ),
-        );
+        self.strings
+            .insert(StringKey::Title, StringValue::new(val, common::PROTECT_TITLE_DEFAULT));
     }
 
     /// Sets the url string value.
     pub fn set_url<S: Into<String>>(&mut self, val: S) {
-        self.strings.insert(
-            StringKey::Url,
-            StringValue::new(
-                val,
-                common::PROTECT_URL_DEFAULT,
-            ),
-        );
+        self.strings
+            .insert(StringKey::Url, StringValue::new(val, common::PROTECT_URL_DEFAULT));
     }
 
     /// Sets the username string value.
     pub fn set_username<S: Into<String>>(&mut self, val: S) {
-        self.strings.insert(
-            StringKey::Username,
-            StringValue::new(
-                val,
-                common::PROTECT_USERNAME_DEFAULT,
-            ),
-        );
+        self.strings
+            .insert(StringKey::Username, StringValue::new(val, common::PROTECT_USERNAME_DEFAULT));
     }
 
     /// Gets the title string if any.
@@ -287,8 +262,6 @@ impl Times for Entry {
 #[cfg(test)]
 mod tests {
 
-    use chrono::Utc;
-    use std::collections::HashMap;
     use super::*;
     use crate::types::EntryUuid;
     use crate::types::Icon;
@@ -296,6 +269,8 @@ mod tests {
     use crate::types::StringKey;
     use crate::types::StringsMap;
     use crate::utils::test::approx_equal_datetime;
+    use chrono::Utc;
+    use std::collections::HashMap;
 
     #[test]
     fn test_new_returns_correct_instance() {

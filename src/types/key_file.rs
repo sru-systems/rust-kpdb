@@ -6,12 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use super::key_file_type::KeyFileType;
+use super::result::Result;
 use crate::crypto::random_gen::RandomGen;
 use crate::format::{kf_reader, kf_writer};
 use secstr::SecStr;
 use std::io::{Read, Write};
-use super::key_file_type::KeyFileType;
-use super::result::Result;
 
 /// A key file used for encrypting and decrypting the database.
 #[derive(Clone, Debug, PartialEq)]
@@ -38,7 +38,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_binary());
+    /// let key = KeyFile::new_binary()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -59,7 +59,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_hex());
+    /// let key = KeyFile::new_hex()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -80,7 +80,7 @@ impl KeyFile {
     /// use kpdb::KeyFile;
     ///
     /// # fn new_example() -> Result<()> {
-    /// let key = try!(KeyFile::new_xml());
+    /// let key = KeyFile::new_xml()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -102,8 +102,8 @@ impl KeyFile {
     /// use std::fs::File;
     ///
     /// # fn open_example() -> Result<()> {
-    /// let mut file = try!(File::open("passwords.key"));
-    /// let key = try!(KeyFile::open(&mut file));
+    /// let mut file = File::open("passwords.key")?;
+    /// let key = KeyFile::open(&mut file)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -121,10 +121,10 @@ impl KeyFile {
     /// use std::fs::File;
     ///
     /// # fn save_example() -> Result<()> {
-    /// let key = try!(KeyFile::new());
-    /// let mut file = try!(File::create("new.key"));
+    /// let key = KeyFile::new()?;
+    /// let mut file = File::create("new.key")?;
     ///
-    /// try!(key.save(&mut file));
+    /// key.save(&mut file)?;
     /// # Ok(())
     /// # }
     /// ```

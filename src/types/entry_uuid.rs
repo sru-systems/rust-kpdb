@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use uuid::Uuid;
 use std::fmt::Display;
+use uuid::Uuid;
 
 /// The identifier for an entry.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]

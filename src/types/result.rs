@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::result;
 use super::error::Error;
+use std::result;
 
 /// A specialized result type for database operations.
 pub type Result<T> = result::Result<T, Error>;

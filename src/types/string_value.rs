@@ -41,8 +41,8 @@ impl StringValue {
 #[cfg(test)]
 mod tests {
 
-    use secstr::SecStr;
     use super::*;
+    use secstr::SecStr;
 
     #[test]
     fn test_new_with_plain_value_returns_correct_string_value() {

@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use secstr::SecStr;
 use super::binary_id::BinaryId;
+use secstr::SecStr;
 
 /// A value for entry's map with binaries.
 #[derive(Clone, Debug, PartialEq)]

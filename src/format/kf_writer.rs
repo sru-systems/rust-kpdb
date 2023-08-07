@@ -8,11 +8,11 @@
 
 //! The writer for key files.
 
-use hex::ToHex;
-use std::io::Write;
-use super::{kf, xml};
+use crate::format::{kf, xml};
 use crate::types::{KeyFile, KeyFileType, Result};
-use xml::writer::{EmitterConfig, EventWriter};
+use hex::ToHex;
+use rust_xml::writer::{EmitterConfig, EventWriter};
+use std::io::Write;
 
 /// Attempts to write the key file to the writer.
 pub fn write<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
@@ -35,9 +35,9 @@ fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_xml<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    let config = EmitterConfig::new().perform_indent(true).indent_string(
-        "\t",
-    );
+    let config = EmitterConfig::new()
+        .perform_indent(true)
+        .indent_string("\t");
 
     {
         let mut writer = EventWriter::new_with_config(writer, config);

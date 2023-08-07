@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::collections::HashMap;
 use super::string_key::StringKey;
 use super::string_value::StringValue;
+use std::collections::HashMap;
 
 /// A type alias for the map with strings.
 pub type StringsMap = HashMap<StringKey, StringValue>;

@@ -6,9 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rand::Rng;
-use rand::os::OsRng;
 use crate::types::Result;
+use rand::os::OsRng;
+use rand::Rng;
 
 /// A cryptographic secure random number generator.
 pub struct RandomGen(OsRng);

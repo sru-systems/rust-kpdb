@@ -9,8 +9,7 @@
 //! The XML reader for KeePass 2 databases.
 
 use crate::crypto::salsa20::{self, Salsa20};
-use std::io::Read;
-use super::{kdb2, xml};
+use crate::format::{kdb2, xml};
 use crate::types::Association;
 use crate::types::BinariesMap;
 use crate::types::BinaryId;
@@ -31,8 +30,9 @@ use crate::types::StringKey;
 use crate::types::StringValue;
 use crate::types::Times;
 use crate::types::XmlData;
-use xml::attribute::OwnedAttribute;
-use xml::reader::{EventReader, XmlEvent};
+use rust_xml::attribute::OwnedAttribute;
+use rust_xml::reader::{EventReader, XmlEvent};
+use std::io::Read;
 
 /// Attempts to read the XML data from the reader.
 pub fn read<R: Read>(reader: &mut R, stream_key: &StreamKey) -> Result<XmlData> {
@@ -42,14 +42,12 @@ pub fn read<R: Read>(reader: &mut R, stream_key: &StreamKey) -> Result<XmlData> 
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::KEE_PASS_FILE_TAG => {
-                        read_kee_pass_file(&mut reader, &mut data, &mut cipher)?;
-                    }
-                    _ => return xml::read_err(&mut reader, "Invalid root node"),
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::KEE_PASS_FILE_TAG => {
+                    read_kee_pass_file(&mut reader, &mut data, &mut cipher)?;
                 }
-            }
+                _ => return xml::read_err(&mut reader, "Invalid root node"),
+            },
 
             XmlEvent::EndDocument { .. } => {
                 break;
@@ -70,17 +68,15 @@ fn read_kee_pass_file<R: Read>(
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::META_TAG => {
-                        read_meta(reader, data)?;
-                    }
-                    kdb2::ROOT_TAG => {
-                        read_root(reader, data, cipher)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::META_TAG => {
+                    read_meta(reader, data)?;
                 }
-            }
+                kdb2::ROOT_TAG => {
+                    read_root(reader, data, cipher)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::KEE_PASS_FILE_TAG {
@@ -99,89 +95,87 @@ fn read_meta<R: Read>(reader: &mut EventReader<R>, data: &mut XmlData) -> Result
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::BINARIES_TAG => {
-                        data.binaries = read_binaries(reader)?;
-                    }
-                    kdb2::COLOR_TAG => {
-                        data.color = xml::read_color_opt(reader)?;
-                    }
-                    kdb2::CUSTOM_DATA_TAG => {
-                        data.custom_data = read_custom_data(reader)?;
-                    }
-                    kdb2::CUSTOM_ICONS_TAG => {
-                        data.custom_icons = read_custom_icons(reader)?;
-                    }
-                    kdb2::DATABASE_DESCRIPTION_TAG => {
-                        data.description = xml::read_string(reader)?;
-                    }
-                    kdb2::DATABASE_DESCRIPTION_CHANGED_TAG => {
-                        data.description_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::DATABASE_NAME_TAG => {
-                        data.name = xml::read_string(reader)?;
-                    }
-                    kdb2::DATABASE_NAME_CHANGED_TAG => {
-                        data.name_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::DEFAULT_USERNAME_TAG => {
-                        data.def_username = xml::read_string(reader)?;
-                    }
-                    kdb2::DEFAULT_USERNAME_CHANGED_TAG => {
-                        data.def_username_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::ENTRY_TEMPLATES_GROUP_TAG => {
-                        data.entry_templates_group_uuid = GroupUuid(xml::read_uuid(reader)?);
-                    }
-                    kdb2::ENTRY_TEMPLATES_GROUP_CHANGED_TAG => {
-                        data.entry_templates_group_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::GENERATOR_TAG => {
-                        data.generator = xml::read_string(reader)?;
-                    }
-                    kdb2::HEADER_HASH_TAG => {
-                        data.header_hash = Some(HeaderHash(xml::read_binary(reader)?));
-                    }
-                    kdb2::HISTORY_MAX_ITEMS_TAG => {
-                        data.history_max_items = xml::read_i32(reader)?;
-                    }
-                    kdb2::HISTORY_MAX_SIZE_TAG => {
-                        data.history_max_size = xml::read_i32(reader)?;
-                    }
-                    kdb2::LAST_SELECTED_GROUP_TAG => {
-                        data.last_selected_group = GroupUuid(xml::read_uuid(reader)?);
-                    }
-                    kdb2::LAST_TOP_VISIBLE_GROUP_TAG => {
-                        data.last_top_visible_group = GroupUuid(xml::read_uuid(reader)?);
-                    }
-                    kdb2::MAINTENANCE_HISTORY_DAYS_TAG => {
-                        data.maintenance_history_days = xml::read_i32(reader)?;
-                    }
-                    kdb2::MASTER_KEY_CHANGE_FORCE_TAG => {
-                        data.master_key_change_force = xml::read_i32(reader)?;
-                    }
-                    kdb2::MASTER_KEY_CHANGE_REC_TAG => {
-                        data.master_key_change_rec = xml::read_i32(reader)?;
-                    }
-                    kdb2::MASTER_KEY_CHANGED_TAG => {
-                        data.master_key_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::MEMORY_PROTECTION_TAG => {
-                        read_memory_protection(reader, data)?;
-                    }
-                    kdb2::RECYCLE_BIN_CHANGED_TAG => {
-                        data.recycle_bin_changed = xml::read_datetime(reader)?;
-                    }
-                    kdb2::RECYCLE_BIN_ENABLED_TAG => {
-                        data.recycle_bin_enabled = xml::read_bool(reader)?;
-                    }
-                    kdb2::RECYCLE_BIN_UUID_TAG => {
-                        data.recycle_bin_uuid = GroupUuid(xml::read_uuid(reader)?);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::BINARIES_TAG => {
+                    data.binaries = read_binaries(reader)?;
                 }
-            }
+                kdb2::COLOR_TAG => {
+                    data.color = xml::read_color_opt(reader)?;
+                }
+                kdb2::CUSTOM_DATA_TAG => {
+                    data.custom_data = read_custom_data(reader)?;
+                }
+                kdb2::CUSTOM_ICONS_TAG => {
+                    data.custom_icons = read_custom_icons(reader)?;
+                }
+                kdb2::DATABASE_DESCRIPTION_TAG => {
+                    data.description = xml::read_string(reader)?;
+                }
+                kdb2::DATABASE_DESCRIPTION_CHANGED_TAG => {
+                    data.description_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::DATABASE_NAME_TAG => {
+                    data.name = xml::read_string(reader)?;
+                }
+                kdb2::DATABASE_NAME_CHANGED_TAG => {
+                    data.name_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::DEFAULT_USERNAME_TAG => {
+                    data.def_username = xml::read_string(reader)?;
+                }
+                kdb2::DEFAULT_USERNAME_CHANGED_TAG => {
+                    data.def_username_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::ENTRY_TEMPLATES_GROUP_TAG => {
+                    data.entry_templates_group_uuid = GroupUuid(xml::read_uuid(reader)?);
+                }
+                kdb2::ENTRY_TEMPLATES_GROUP_CHANGED_TAG => {
+                    data.entry_templates_group_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::GENERATOR_TAG => {
+                    data.generator = xml::read_string(reader)?;
+                }
+                kdb2::HEADER_HASH_TAG => {
+                    data.header_hash = Some(HeaderHash(xml::read_binary(reader)?));
+                }
+                kdb2::HISTORY_MAX_ITEMS_TAG => {
+                    data.history_max_items = xml::read_i32(reader)?;
+                }
+                kdb2::HISTORY_MAX_SIZE_TAG => {
+                    data.history_max_size = xml::read_i32(reader)?;
+                }
+                kdb2::LAST_SELECTED_GROUP_TAG => {
+                    data.last_selected_group = GroupUuid(xml::read_uuid(reader)?);
+                }
+                kdb2::LAST_TOP_VISIBLE_GROUP_TAG => {
+                    data.last_top_visible_group = GroupUuid(xml::read_uuid(reader)?);
+                }
+                kdb2::MAINTENANCE_HISTORY_DAYS_TAG => {
+                    data.maintenance_history_days = xml::read_i32(reader)?;
+                }
+                kdb2::MASTER_KEY_CHANGE_FORCE_TAG => {
+                    data.master_key_change_force = xml::read_i32(reader)?;
+                }
+                kdb2::MASTER_KEY_CHANGE_REC_TAG => {
+                    data.master_key_change_rec = xml::read_i32(reader)?;
+                }
+                kdb2::MASTER_KEY_CHANGED_TAG => {
+                    data.master_key_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::MEMORY_PROTECTION_TAG => {
+                    read_memory_protection(reader, data)?;
+                }
+                kdb2::RECYCLE_BIN_CHANGED_TAG => {
+                    data.recycle_bin_changed = xml::read_datetime(reader)?;
+                }
+                kdb2::RECYCLE_BIN_ENABLED_TAG => {
+                    data.recycle_bin_enabled = xml::read_bool(reader)?;
+                }
+                kdb2::RECYCLE_BIN_UUID_TAG => {
+                    data.recycle_bin_uuid = GroupUuid(xml::read_uuid(reader)?);
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::META_TAG {
@@ -204,14 +198,12 @@ fn read_root<R: Read>(
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::GROUP_TAG => {
-                        data.root_group = Some(read_group(reader, cipher, GroupUuid::nil())?);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::GROUP_TAG => {
+                    data.root_group = Some(read_group(reader, cipher, GroupUuid::nil())?);
                 }
-            }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::ROOT_TAG {
@@ -231,21 +223,21 @@ fn read_binaries<R: Read>(reader: &mut EventReader<R>) -> Result<BinariesMap> {
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, attributes, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::BINARY_TAG => {
-                        let id = BinaryId(get_id_attr_value(reader, &attributes)?);
-                        let compressed = get_compressed_attr_value(reader, &attributes)?;
-                        let bytes = if compressed {
-                            xml::read_gzip(reader)?
-                        } else {
-                            xml::read_binary(reader)?
-                        };
-                        map.insert(id, bytes);
-                    }
-                    _ => {}
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => match name.local_name.as_str() {
+                kdb2::BINARY_TAG => {
+                    let id = BinaryId(get_id_attr_value(reader, &attributes)?);
+                    let compressed = get_compressed_attr_value(reader, &attributes)?;
+                    let bytes = if compressed {
+                        xml::read_gzip(reader)?
+                    } else {
+                        xml::read_binary(reader)?
+                    };
+                    map.insert(id, bytes);
                 }
-            }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::BINARIES_TAG {
@@ -265,15 +257,13 @@ fn read_custom_data<R: Read>(reader: &mut EventReader<R>) -> Result<CustomDataMa
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::ITEM_TAG => {
-                        let (key, value) = read_custom_data_item(reader)?;
-                        map.insert(key, value);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::ITEM_TAG => {
+                    let (key, value) = read_custom_data_item(reader)?;
+                    map.insert(key, value);
                 }
-            }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::CUSTOM_DATA_TAG {
@@ -294,17 +284,15 @@ fn read_custom_data_item<R: Read>(reader: &mut EventReader<R>) -> Result<(String
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::KEY_TAG => {
-                        key = xml::read_string_opt(reader)?;
-                    }
-                    kdb2::VALUE_TAG => {
-                        value = xml::read_string_opt(reader)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::KEY_TAG => {
+                    key = xml::read_string_opt(reader)?;
                 }
-            }
+                kdb2::VALUE_TAG => {
+                    value = xml::read_string_opt(reader)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::ITEM_TAG {
@@ -334,15 +322,13 @@ fn read_custom_icons<R: Read>(reader: &mut EventReader<R>) -> Result<CustomIcons
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::ICON_TAG => {
-                        let (uuid, data) = read_custom_icon(reader)?;
-                        map.insert(uuid, data);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::ICON_TAG => {
+                    let (uuid, data) = read_custom_icon(reader)?;
+                    map.insert(uuid, data);
                 }
-            }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::CUSTOM_ICONS_TAG {
@@ -363,17 +349,15 @@ fn read_custom_icon<R: Read>(reader: &mut EventReader<R>) -> Result<(CustomIconU
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::DATA_TAG => {
-                        data = xml::read_binary_opt(reader)?;
-                    }
-                    kdb2::UUID_TAG => {
-                        uuid = xml::read_custom_icon_uuid_opt(reader)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::DATA_TAG => {
+                    data = xml::read_binary_opt(reader)?;
                 }
-            }
+                kdb2::UUID_TAG => {
+                    uuid = xml::read_custom_icon_uuid_opt(reader)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::ICON_TAG {
@@ -402,26 +386,24 @@ fn read_memory_protection<R: Read>(reader: &mut EventReader<R>, data: &mut XmlDa
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::PROTECT_NOTES_TAG => {
-                        data.protect_notes = xml::read_bool(reader)?;
-                    }
-                    kdb2::PROTECT_PASSWORD_TAG => {
-                        data.protect_password = xml::read_bool(reader)?;
-                    }
-                    kdb2::PROTECT_TITLE_TAG => {
-                        data.protect_title = xml::read_bool(reader)?;
-                    }
-                    kdb2::PROTECT_URL_TAG => {
-                        data.protect_url = xml::read_bool(reader)?;
-                    }
-                    kdb2::PROTECT_USERNAME_TAG => {
-                        data.protect_username = xml::read_bool(reader)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::PROTECT_NOTES_TAG => {
+                    data.protect_notes = xml::read_bool(reader)?;
                 }
-            }
+                kdb2::PROTECT_PASSWORD_TAG => {
+                    data.protect_password = xml::read_bool(reader)?;
+                }
+                kdb2::PROTECT_TITLE_TAG => {
+                    data.protect_title = xml::read_bool(reader)?;
+                }
+                kdb2::PROTECT_URL_TAG => {
+                    data.protect_url = xml::read_bool(reader)?;
+                }
+                kdb2::PROTECT_USERNAME_TAG => {
+                    data.protect_username = xml::read_bool(reader)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::MEMORY_PROTECTION_TAG {
@@ -436,56 +418,64 @@ fn read_memory_protection<R: Read>(reader: &mut EventReader<R>, data: &mut XmlDa
     Ok(())
 }
 
-fn read_group<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20, parent: GroupUuid) -> Result<Group> {
+fn read_group<R: Read>(
+    reader: &mut EventReader<R>,
+    cipher: &mut Salsa20,
+    parent: GroupUuid,
+) -> Result<Group> {
     let mut node = Group::default();
     node.parent = parent;
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::CUSTOM_ICON_UUID_TAG => {
-                        node.custom_icon_uuid = xml::read_custom_icon_uuid_opt(reader)?;
-                    }
-                    kdb2::DEFAULT_AUTO_TYPE_SEQUENCE_TAG => {
-                        node.def_auto_type_sequence = xml::read_string(reader)?;
-                    }
-                    kdb2::ENABLE_AUTO_TYPE_TAG => {
-                        node.enable_auto_type = xml::read_bool_opt(reader)?;
-                    }
-                    kdb2::ENABLE_SEARCHING_TAG => {
-                        node.enable_searching = xml::read_bool_opt(reader)?;
-                    }
-                    kdb2::ENTRY_TAG => {
-                        node.entries.push(read_entry(reader, cipher, EntryState::Active, GroupUuid::nil())?);
-                    }
-                    kdb2::GROUP_TAG => {
-                        node.groups.push(read_group(reader, cipher, GroupUuid::nil())?);
-                    }
-                    kdb2::ICON_ID_TAG => {
-                        node.icon = xml::read_icon(reader)?;
-                    }
-                    kdb2::IS_EXPANDED_TAG => {
-                        node.is_expanded = xml::read_bool(reader)?;
-                    }
-                    kdb2::LAST_TOP_VISIBLE_ENTRY_TAG => {
-                        node.last_top_visible_entry = EntryUuid(xml::read_uuid(reader)?);
-                    }
-                    kdb2::NAME_TAG => {
-                        node.name = xml::read_string(reader)?;
-                    }
-                    kdb2::NOTES_TAG => {
-                        node.notes = xml::read_string(reader)?;
-                    }
-                    kdb2::TIMES_TAG => {
-                        read_times(reader, &mut node)?;
-                    }
-                    kdb2::UUID_TAG => {
-                        node.uuid = GroupUuid(xml::read_uuid(reader)?);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::CUSTOM_ICON_UUID_TAG => {
+                    node.custom_icon_uuid = xml::read_custom_icon_uuid_opt(reader)?;
                 }
-            }
+                kdb2::DEFAULT_AUTO_TYPE_SEQUENCE_TAG => {
+                    node.def_auto_type_sequence = xml::read_string(reader)?;
+                }
+                kdb2::ENABLE_AUTO_TYPE_TAG => {
+                    node.enable_auto_type = xml::read_bool_opt(reader)?;
+                }
+                kdb2::ENABLE_SEARCHING_TAG => {
+                    node.enable_searching = xml::read_bool_opt(reader)?;
+                }
+                kdb2::ENTRY_TAG => {
+                    node.entries.push(read_entry(
+                        reader,
+                        cipher,
+                        EntryState::Active,
+                        GroupUuid::nil(),
+                    )?);
+                }
+                kdb2::GROUP_TAG => {
+                    node.groups
+                        .push(read_group(reader, cipher, GroupUuid::nil())?);
+                }
+                kdb2::ICON_ID_TAG => {
+                    node.icon = xml::read_icon(reader)?;
+                }
+                kdb2::IS_EXPANDED_TAG => {
+                    node.is_expanded = xml::read_bool(reader)?;
+                }
+                kdb2::LAST_TOP_VISIBLE_ENTRY_TAG => {
+                    node.last_top_visible_entry = EntryUuid(xml::read_uuid(reader)?);
+                }
+                kdb2::NAME_TAG => {
+                    node.name = xml::read_string(reader)?;
+                }
+                kdb2::NOTES_TAG => {
+                    node.notes = xml::read_string(reader)?;
+                }
+                kdb2::TIMES_TAG => {
+                    read_times(reader, &mut node)?;
+                }
+                kdb2::UUID_TAG => {
+                    node.uuid = GroupUuid(xml::read_uuid(reader)?);
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::GROUP_TAG {
@@ -540,7 +530,8 @@ fn read_entry<R: Read>(
                     }
                     kdb2::HISTORY_TAG => {
                         if state == EntryState::Active {
-                            node.history.append(&mut read_history(reader, cipher, parent.clone())?);
+                            node.history
+                                .append(&mut read_history(reader, cipher, parent.clone())?);
                         }
                     }
                     kdb2::ICON_ID_TAG => {
@@ -582,14 +573,14 @@ fn read_auto_type<R: Read>(reader: &mut EventReader<R>, node: &mut Entry) -> Res
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
+            XmlEvent::StartElement { name, .. } =>
+            {
                 #[allow(unused_must_use)]
                 match name.local_name.as_str() {
                     kdb2::ASSOCIATION_TAG => {
                         read_association(reader)
                             .map(|x| node.associations.push(x))
-                            .map_err(|err| eprintln!("{}", err))
-                        ;
+                            .map_err(|err| eprintln!("{}", err));
                     }
                     kdb2::DATA_TRANSFER_OBFUSCATION_TAG => {
                         node.auto_type_obfuscation = xml::read_obfuscation(reader)?;
@@ -622,17 +613,15 @@ fn read_association<R: Read>(reader: &mut EventReader<R>) -> Result<Association>
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::KEYSTROKE_SEQUENCE_TAG => {
-                        keystroke = xml::read_string_opt(reader)?;
-                    }
-                    kdb2::WINDOW_TAG => {
-                        window = xml::read_string_opt(reader)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::KEYSTROKE_SEQUENCE_TAG => {
+                    keystroke = xml::read_string_opt(reader)?;
                 }
-            }
+                kdb2::WINDOW_TAG => {
+                    window = xml::read_string_opt(reader)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::ASSOCIATION_TAG {
@@ -669,17 +658,17 @@ fn read_binary<R: Read>(
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, attributes, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::KEY_TAG => {
-                        key = xml::read_binary_key_opt(reader)?;
-                    }
-                    kdb2::VALUE_TAG => {
-                        value = xml::read_binary_value_opt(reader, cipher, &attributes)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => match name.local_name.as_str() {
+                kdb2::KEY_TAG => {
+                    key = xml::read_binary_key_opt(reader)?;
                 }
-            }
+                kdb2::VALUE_TAG => {
+                    value = xml::read_binary_value_opt(reader, cipher, &attributes)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::BINARY_TAG {
@@ -704,19 +693,21 @@ fn read_binary<R: Read>(
     Ok((key, value))
 }
 
-fn read_history<R: Read>(reader: &mut EventReader<R>, cipher: &mut Salsa20, parent: GroupUuid ) -> Result<Vec<Entry>> {
+fn read_history<R: Read>(
+    reader: &mut EventReader<R>,
+    cipher: &mut Salsa20,
+    parent: GroupUuid,
+) -> Result<Vec<Entry>> {
     let mut list = Vec::new();
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::ENTRY_TAG => {
-                        list.push(read_entry(reader, cipher, EntryState::History, parent)?);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::ENTRY_TAG => {
+                    list.push(read_entry(reader, cipher, EntryState::History, parent)?);
                 }
-            }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::HISTORY_TAG {
@@ -740,17 +731,17 @@ fn read_string<R: Read>(
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, attributes, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::KEY_TAG => {
-                        key = xml::read_string_key_opt(reader)?;
-                    }
-                    kdb2::VALUE_TAG => {
-                        value = xml::read_string_value_opt(reader, cipher, &attributes)?;
-                    }
-                    _ => {}
+            XmlEvent::StartElement {
+                name, attributes, ..
+            } => match name.local_name.as_str() {
+                kdb2::KEY_TAG => {
+                    key = xml::read_string_key_opt(reader)?;
                 }
-            }
+                kdb2::VALUE_TAG => {
+                    value = xml::read_string_value_opt(reader, cipher, &attributes)?;
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::STRING_TAG {
@@ -783,32 +774,30 @@ where
     loop {
         let event = reader.next()?;
         match event {
-            XmlEvent::StartElement { name, .. } => {
-                match name.local_name.as_str() {
-                    kdb2::CREATION_TIME_TAG => {
-                        node.set_creation_time(xml::read_datetime(reader)?);
-                    }
-                    kdb2::EXPIRY_TIME_TAG => {
-                        node.set_expiry_time(xml::read_datetime(reader)?);
-                    }
-                    kdb2::EXPIRES_TAG => {
-                        node.set_expires(xml::read_bool(reader)?);
-                    }
-                    kdb2::LAST_ACCESS_TIME_TAG => {
-                        node.set_last_accessed(xml::read_datetime(reader)?);
-                    }
-                    kdb2::LAST_MODIFICATION_TIME_TAG => {
-                        node.set_last_modified(xml::read_datetime(reader)?);
-                    }
-                    kdb2::LOCATION_CHANGED_TAG => {
-                        node.set_location_changed(xml::read_datetime(reader)?);
-                    }
-                    kdb2::USAGE_COUNT_TAG => {
-                        node.set_usage_count(xml::read_i32(reader)?);
-                    }
-                    _ => {}
+            XmlEvent::StartElement { name, .. } => match name.local_name.as_str() {
+                kdb2::CREATION_TIME_TAG => {
+                    node.set_creation_time(xml::read_datetime(reader)?);
                 }
-            }
+                kdb2::EXPIRY_TIME_TAG => {
+                    node.set_expiry_time(xml::read_datetime(reader)?);
+                }
+                kdb2::EXPIRES_TAG => {
+                    node.set_expires(xml::read_bool(reader)?);
+                }
+                kdb2::LAST_ACCESS_TIME_TAG => {
+                    node.set_last_accessed(xml::read_datetime(reader)?);
+                }
+                kdb2::LAST_MODIFICATION_TIME_TAG => {
+                    node.set_last_modified(xml::read_datetime(reader)?);
+                }
+                kdb2::LOCATION_CHANGED_TAG => {
+                    node.set_location_changed(xml::read_datetime(reader)?);
+                }
+                kdb2::USAGE_COUNT_TAG => {
+                    node.set_usage_count(xml::read_i32(reader)?);
+                }
+                _ => {}
+            },
 
             XmlEvent::EndElement { name, .. } => {
                 if name.local_name == kdb2::TIMES_TAG {
@@ -828,12 +817,10 @@ fn get_compressed_attr_value<R: Read>(
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<bool> {
     match xml::search_attr_value(attrs, "compressed") {
-        Some(val) => {
-            match val.to_lowercase().parse::<bool>() {
-                Ok(val) => Ok(val),
-                Err(_) => xml::read_err(reader, "Attribute Compressed invalid value"),
-            }
-        }
+        Some(val) => match val.to_lowercase().parse::<bool>() {
+            Ok(val) => Ok(val),
+            Err(_) => xml::read_err(reader, "Attribute Compressed invalid value"),
+        },
         None => Ok(false),
     }
 }

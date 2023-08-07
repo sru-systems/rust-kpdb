@@ -6,8 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::io::{Result, Write};
 use super::log::Log;
+use std::io::{Result, Write};
 
 /// A writer that logs the written data.
 pub struct LogWriter<W> {
@@ -62,9 +62,9 @@ impl<W: Write> Write for LogWriter<W> {
 #[cfg(test)]
 mod tests {
 
-    use std::io::Write;
     use super::*;
     use crate::io::Log;
+    use std::io::Write;
 
     #[test]
     fn test_clear_clears_logged_data() {

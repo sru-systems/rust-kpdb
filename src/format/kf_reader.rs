@@ -8,12 +8,12 @@
 
 //! The reader for key files.
 
+use crate::format::{kf, xml};
+use crate::types::{Error, KeyFile, KeyFileType, Result};
 use hex::FromHex;
+use rust_xml::reader::{EventReader, XmlEvent};
 use secstr::SecStr;
 use std::io::{Cursor, Read};
-use super::{kf, xml};
-use crate::types::{Error, KeyFile, KeyFileType, Result};
-use xml::reader::{EventReader, XmlEvent};
 
 /// Attempts to read a key file from the reader.
 pub fn read<R: Read>(reader: &mut R) -> Result<KeyFile> {
@@ -35,12 +35,10 @@ fn read_binary(data: Vec<u8>) -> Result<KeyFile> {
 
 fn read_hex(data: Vec<u8>) -> Result<KeyFile> {
     match FromHex::from_hex(&data) {
-        Ok(key) => {
-            Ok(KeyFile {
-                key: SecStr::new(key),
-                file_type: KeyFileType::Hex,
-            })
-        }
+        Ok(key) => Ok(KeyFile {
+            key: SecStr::new(key),
+            file_type: KeyFileType::Hex,
+        }),
         Err(_) => Err(Error::InvalidKeyFile),
     }
 }
@@ -64,12 +62,10 @@ fn read_xml<R: Read>(reader: &mut R) -> Result<KeyFile> {
     }
 
     match opt_key {
-        Some(key) => {
-            Ok(KeyFile {
-                key: key,
-                file_type: KeyFileType::Xml,
-            })
-        }
+        Some(key) => Ok(KeyFile {
+            key: key,
+            file_type: KeyFileType::Xml,
+        }),
         None => xml::read_err(&mut reader, "No KeyFile tag found"),
     }
 }

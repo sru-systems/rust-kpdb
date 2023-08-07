@@ -83,17 +83,15 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::CryptoError(err) => {
-                match err {
-                    SymmetricCipherError::InvalidLength => {
-                        write!(f, "Crypto error: invalid length.")
-                    }
-
-                    SymmetricCipherError::InvalidPadding => {
-                        write!(f, "Crypto error: invalid padding.")
-                    }
+            Error::CryptoError(err) => match err {
+                SymmetricCipherError::InvalidLength => {
+                    write!(f, "Crypto error: invalid length.")
                 }
-            }
+
+                SymmetricCipherError::InvalidPadding => {
+                    write!(f, "Crypto error: invalid padding.")
+                }
+            },
 
             Error::InvalidBlockHash => write!(f, "Invalid block hash"),
             Error::InvalidBlockId(val) => write!(f, "Invalid block id: {}", val),
@@ -107,9 +105,7 @@ impl fmt::Display for Error {
                 write!(
                     f,
                     "Invalid header size: id: {}, expected: {}, actual: {}",
-                    id,
-                    expected,
-                    actual
+                    id, expected, actual
                 )
             }
             Error::InvalidHeaderHash => write!(f, "Invalid header hash"),

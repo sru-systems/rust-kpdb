@@ -8,15 +8,13 @@
 
 //! The database writer for KeePass 2 databases.
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use super::{kdb2, kdb2_xml_writer};
 use crate::common;
 use crate::compression::gzip;
 use crate::crypto::aes256;
 use crate::crypto::random_gen::RandomGen;
 use crate::crypto::sha256;
 use crate::io::Log;
-use std::io::Write;
-use super::{kdb2, kdb2_xml_writer};
 use crate::types::Comment;
 use crate::types::Compression;
 use crate::types::Database;
@@ -34,6 +32,8 @@ use crate::types::TransformRounds;
 use crate::types::TransformSeed;
 use crate::types::TransformedKey;
 use crate::types::Version;
+use byteorder::{LittleEndian, WriteBytesExt};
+use std::io::Write;
 
 /// Attempts to write the database content to the writer.
 pub fn write<W: Log + Write>(writer: &mut W, db: &Database) -> Result<()> {

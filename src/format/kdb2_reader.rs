@@ -8,14 +8,12 @@
 
 //! The database reader for KeePass 2 databases.
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use super::kdb2;
+use super::kdb2_xml_reader;
 use crate::compression::gzip;
 use crate::crypto::aes256;
 use crate::crypto::sha256;
 use crate::io::Log;
-use std::io::{Cursor, Read};
-use super::kdb2;
-use super::kdb2_xml_reader;
 use crate::types::Comment;
 use crate::types::CompositeKey;
 use crate::types::Compression;
@@ -36,6 +34,8 @@ use crate::types::TransformSeed;
 use crate::types::TransformedKey;
 use crate::types::Version;
 use crate::types::XmlData;
+use byteorder::{LittleEndian, ReadBytesExt};
+use std::io::{Cursor, Read};
 
 /// Attempts to read the database content from the reader.
 pub fn read<R>(reader: &mut R, composite_key: &CompositeKey) -> Result<(MetaData, XmlData)>
@@ -114,8 +114,7 @@ where
     let master_cipher = get_header(master_cipher, kdb2::MASTER_CIPHER_HID)?;
     let master_iv = get_header(master_iv, kdb2::MASTER_IV_HID)?;
     let master_seed = get_header(master_seed, kdb2::MASTER_SEED_HID)?;
-    let protected_stream_key =
-        get_header(protected_stream_key, kdb2::PROTECTED_STREAM_KEY_HID)?;
+    let protected_stream_key = get_header(protected_stream_key, kdb2::PROTECTED_STREAM_KEY_HID)?;
     let stream_cipher = get_header(stream_cipher, kdb2::STREAM_CIPHER_HID)?;
     let stream_start_bytes = get_header(stream_start_bytes, kdb2::STREAM_START_BYTES_HID)?;
     let transform_rounds = get_header(transform_rounds, kdb2::TRANSFORM_ROUNDS_HID)?;
@@ -340,7 +339,6 @@ fn read_xml_bytes(compression: &Compression, payload: &[u8]) -> Result<Vec<u8>> 
 
         let mut block_data = decompress(compression, &raw_data)?;
         xml.append(&mut block_data);
-
     }
 
     Ok(xml)

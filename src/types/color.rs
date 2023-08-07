@@ -40,7 +40,7 @@ impl Color {
     /// # use kpdb::ColorError;
     ///
     /// # fn convert() -> Result<(), ColorError> {
-    /// let color = try!(Color::from_hex_string("#abcdef"));
+    /// let color = Color::from_hex_string("#abcdef")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -231,7 +231,6 @@ mod tests {
             let expected = tuple.0;
             let actual = color.to_hex_string();
             assert_eq!(actual, expected);
-
         }
     }
 

@@ -127,17 +127,8 @@
 //!
 //! - KeePass 1 databases.
 
-
-extern crate base64;
-extern crate byteorder;
-extern crate chrono;
 extern crate crypto as rust_crypto;
-extern crate flate2;
-extern crate hex;
-extern crate rand;
-extern crate secstr;
-extern crate uuid;
-extern crate xml;
+extern crate xml as rust_xml;
 
 pub use crate::types::Association;
 pub use crate::types::BinariesMap;
@@ -179,7 +170,6 @@ mod format;
 mod io;
 mod types;
 mod utils;
-
 
 #[cfg(test)]
 #[macro_use]
