@@ -10,7 +10,6 @@
 
 use crate::format::{kf, xml};
 use crate::types::{KeyFile, KeyFileType, Result};
-use hex::ToHex;
 use rust_xml::writer::{EmitterConfig, EventWriter};
 use std::io::Write;
 
@@ -29,7 +28,7 @@ fn write_binary<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    let hex = key.key.unsecure().to_hex();
+    let hex = hex::encode(key.key.unsecure());
     writer.write(&hex.into_bytes())?;
     Ok(())
 }

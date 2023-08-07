@@ -15,17 +15,17 @@ keywords = ["keepass", "keepassx", "kdbx"]
 name = "kpdb"
 
 [dependencies]
-base64 = "0.6.0"
+base64 = "0.21.2"
 byteorder = "1"
 chrono = "0.4"
-flate2 = "0.2"
-hex = "0.2.0"
-rand = "0.3"
+flate2 = "1.0"
+hex = "0.4.3"
+rand = "0.8.5"
 rust-crypto = "0.2"
-secstr = "0.3.0"
-uuid = { version = "0.5", features = ["v4"] }
-xml-rs = "0.6"
+secstr = "0.5.1"
+uuid = { version = "1.4.1", features = ["v4"] }
+xml-rs = "0.8"
 
 [dev-dependencies]
-quickcheck = "0.4.1"
+quickcheck = "1.0.3"
 

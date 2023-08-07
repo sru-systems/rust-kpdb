@@ -21,7 +21,7 @@ use crate::types::Obfuscation;
 use crate::types::Result;
 use crate::types::StringKey;
 use crate::types::StringValue;
-use base64;
+use base64::{engine::general_purpose, Engine as _};
 use chrono::{DateTime, Utc};
 use secstr::SecStr;
 use std::io::{Read, Write};
@@ -50,7 +50,7 @@ pub fn read_binary_key_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Optio
 /// Attempts to read optional binary data.
 pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Vec<u8>>> {
     match read_string_opt(reader)? {
-        Some(string) => match base64::decode(&string) {
+        Some(string) => match general_purpose::STANDARD.decode(&string) {
             Ok(bin) => Ok(Some(bin)),
             Err(err) => read_err(reader, format!("Base64 {}", err)),
         },
@@ -236,7 +236,6 @@ pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<St
                 });
             Ok(None)
         }
-        //        _ => read_err(reader, "No characters found"),
     }
 }
 
@@ -279,7 +278,7 @@ pub fn read_uuid<R: Read>(reader: &mut EventReader<R>) -> Result<Uuid> {
 /// Attempts to read an optional UUID.
 pub fn read_uuid_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Uuid>> {
     match read_binary_opt(reader)? {
-        Some(bytes) => match Uuid::from_bytes(&bytes) {
+        Some(bytes) => match Uuid::from_slice(bytes.as_slice()) {
             Ok(uuid) => Ok(Some(uuid)),
             Err(err) => read_err(reader, format!("UUID {}", err)),
         },
@@ -299,7 +298,7 @@ pub fn search_attr_value(attrs: &Vec<OwnedAttribute>, name: &str) -> Option<Stri
 
 /// Attempts to write binary data.
 pub fn write_binary<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Result<()> {
-    write_string(writer, &base64::encode(&data))
+    write_string(writer, &general_purpose::STANDARD.encode(&data))
 }
 
 /// Attempts to write a tag that contains binary data.
@@ -308,7 +307,7 @@ pub fn write_binary_tag<W: Write>(
     tag: &str,
     value: &[u8],
 ) -> Result<()> {
-    write_string_tag(writer, tag, &base64::encode(&value))
+    write_string_tag(writer, tag, &general_purpose::STANDARD.encode(&value))
 }
 
 /// Attempts to write a tag that contains optional boolean data.

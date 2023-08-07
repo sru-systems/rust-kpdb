@@ -7,8 +7,8 @@
 // except according to those terms.
 
 use crate::types::Result;
-use rand::os::OsRng;
-use rand::Rng;
+use rand::rngs::OsRng;
+use rand::RngCore;
 
 /// A cryptographic secure random number generator.
 pub struct RandomGen(OsRng);
@@ -16,7 +16,7 @@ pub struct RandomGen(OsRng);
 impl RandomGen {
     /// Attempts to create a new random number generator.
     pub fn new() -> Result<RandomGen> {
-        let os_rng = OsRng::new()?;
+        let os_rng = OsRng {};
         Ok(RandomGen(os_rng))
     }
 
