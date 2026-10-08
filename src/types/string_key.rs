@@ -6,6 +6,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::fmt;
+
 /// A key for the map with strings.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum StringKey {
@@ -53,25 +55,17 @@ impl StringKey {
             _ => StringKey::Other(String::from(string)),
         }
     }
+}
 
-    /// Gets the string representation of the string key.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use kpdb::StringKey;
-    ///
-    /// let notes_key = StringKey::Notes;
-    /// let string = notes_key.to_string();
-    /// ```
-    pub fn to_string(&self) -> String {
+impl fmt::Display for StringKey {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            StringKey::Notes => String::from("Notes"),
-            StringKey::Other(ref string) => string.clone(),
-            StringKey::Password => String::from("Password"),
-            StringKey::Title => String::from("Title"),
-            StringKey::Url => String::from("URL"),
-            StringKey::Username => String::from("UserName"),
+            StringKey::Notes => write!(f, "Notes"),
+            StringKey::Other(ref string) => write!(f, "{}", string),
+            StringKey::Password => write!(f, "Password"),
+            StringKey::Title => write!(f, "Title"),
+            StringKey::Url => write!(f, "URL"),
+            StringKey::Username => write!(f, "UserName"),
         }
     }
 }

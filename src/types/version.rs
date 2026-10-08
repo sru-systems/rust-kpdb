@@ -26,6 +26,14 @@ impl Version {
             minor: common::KDB2_MINOR_VERSION,
         }
     }
+
+    /// Create a new version for a kdb4 database.
+    pub fn new_kdb4() -> Version {
+        Version {
+            major: common::KDB4_MAJOR_VERSION,
+            minor: common::KDB4_MINOR_VERSION,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -37,6 +45,13 @@ mod tests {
     fn test_new_kdb2_returns_correct_instance() {
         let version = Version::new_kdb2();
         assert_eq!(version.major, 3);
+        assert_eq!(version.minor, 1);
+    }
+
+    #[test]
+    fn test_new_kdb4_returns_correct_instance() {
+        let version = Version::new_kdb4();
+        assert_eq!(version.major, 4);
         assert_eq!(version.minor, 1);
     }
 }

@@ -91,10 +91,11 @@ impl Group {
     /// let group = Group::new("Websites");
     /// ```
     pub fn new<S: Into<String>>(name: S) -> Group {
-        let mut group = Group::default();
-        group.name = name.into();
-        group.uuid = GroupUuid::new_random();
-        group
+        Group {
+            name: name.into(),
+            uuid: GroupUuid::new_random(),
+            ..Group::default()
+        }
     }
 
     /// Add an entry to the current group.
@@ -154,7 +155,7 @@ impl Group {
     /// assert_eq!(iterator.next(), Some(&sub_2));
     /// assert_eq!(iterator.next(), None);
     /// ```
-    pub fn iter(&self) -> Iter {
+    pub fn iter(&self) -> Iter<'_> {
         Iter::new(self)
     }
 
@@ -171,7 +172,7 @@ impl Group {
     /// }
     /// assert_eq!(root.name, "name");
     /// ```
-    pub fn iter_mut(&mut self) -> IterMut {
+    pub fn iter_mut(&mut self) -> IterMut<'_> {
         IterMut::new(self)
     }
 
@@ -325,13 +326,10 @@ impl<'a> Iterator for Iter<'a> {
     type Item = &'a Group;
 
     fn next(&mut self) -> Option<&'a Group> {
-        match self.curr.take() {
-            Some(group) => {
-                for sub in group.groups.iter() {
-                    self.todo.push_back(sub);
-                }
+        if let Some(group) = self.curr.take() {
+            for sub in group.groups.iter() {
+                self.todo.push_back(sub);
             }
-            None => {}
         }
         self.curr = self.todo.pop_front();
         self.curr
@@ -359,13 +357,10 @@ impl<'a> Iterator for IterMut<'a> {
     type Item = &'a mut Group;
 
     fn next(&mut self) -> Option<&'a mut Group> {
-        match self.curr.take() {
-            Some(group) => {
-                for sub in group.groups.iter_mut() {
-                    self.todo.push_back(sub);
-                }
+        if let Some(group) = self.curr.take() {
+            for sub in group.groups.iter_mut() {
+                self.todo.push_back(sub);
             }
-            None => {}
         }
         let curr = self.todo.pop_front();
         self.curr = unsafe { ptr::read(&curr) };
@@ -394,11 +389,11 @@ mod tests {
         assert_eq!(group.enable_auto_type, None);
         assert_eq!(group.enable_searching, None);
         assert_eq!(group.entries, Vec::new());
-        assert_eq!(group.expires, false);
+        assert!(!group.expires);
         assert!(approx_equal_datetime(group.expiry_time, now));
         assert_eq!(group.groups, Vec::new());
         assert_eq!(group.icon, Icon::Folder);
-        assert_eq!(group.is_expanded, true);
+        assert!(group.is_expanded);
         assert!(approx_equal_datetime(group.last_accessed, now));
         assert!(approx_equal_datetime(group.last_modified, now));
         assert_eq!(group.last_top_visible_entry, EntryUuid::nil());
@@ -466,16 +461,12 @@ mod tests {
         root.add_group(sub_1);
         root.add_group(sub_2);
 
-        let mut num = 0;
-        for group in root.iter_mut() {
+        for (num, group) in root.iter_mut().enumerate() {
             group.name = num.to_string();
-            num += 1;
         }
 
-        let mut num = 0;
-        for group in root.iter() {
+        for (num, group) in root.iter().enumerate() {
             assert_eq!(group.name, num.to_string());
-            num += 1;
         }
     }
 
@@ -515,11 +506,11 @@ mod tests {
         assert_eq!(group.enable_auto_type, None);
         assert_eq!(group.enable_searching, None);
         assert_eq!(group.entries, Vec::new());
-        assert_eq!(group.expires, false);
+        assert!(!group.expires);
         assert!(approx_equal_datetime(group.expiry_time, now));
         assert_eq!(group.groups, Vec::new());
         assert_eq!(group.icon, Icon::Folder);
-        assert_eq!(group.is_expanded, true);
+        assert!(group.is_expanded);
         assert!(approx_equal_datetime(group.last_accessed, now));
         assert!(approx_equal_datetime(group.last_modified, now));
         assert_eq!(group.last_top_visible_entry, EntryUuid::nil());

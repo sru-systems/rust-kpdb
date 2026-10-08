@@ -20,7 +20,7 @@ impl<R: Read> LogReader<R> {
     /// Create a new logging reader.
     pub fn new(inner: R) -> LogReader<R> {
         LogReader {
-            inner: inner,
+            inner,
             is_logging: true,
             log_data: Vec::new(),
         }
@@ -36,10 +36,6 @@ impl<R> Log for LogReader<R> {
         &self.log_data
     }
 
-    fn start(&mut self) {
-        self.is_logging = true;
-    }
-
     fn stop(&mut self) {
         self.is_logging = false;
     }
@@ -49,7 +45,7 @@ impl<R: Read> Read for LogReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         let result = self.inner.read(buf);
         if self.is_logging {
-            self.log_data.extend_from_slice(&buf);
+            self.log_data.extend_from_slice(buf);
         }
         result
     }
@@ -66,7 +62,7 @@ mod tests {
     fn test_clear_clears_logged_data() {
         let mut target = new_log_reader();
         let mut buffer = vec![0; 4];
-        target.read(&mut buffer).unwrap();
+        target.read_exact(&mut buffer).unwrap();
         assert_eq!(target.logged(), &vec![0, 1, 2, 3]);
 
         target.clear();
@@ -77,25 +73,21 @@ mod tests {
     fn test_logged_returns_correct_data() {
         let mut target = new_log_reader();
         let mut buffer = vec![0; 4];
-        target.read(&mut buffer).unwrap();
+        target.read_exact(&mut buffer).unwrap();
         assert_eq!(buffer, vec![0, 1, 2, 3]);
         assert_eq!(target.logged(), &vec![0, 1, 2, 3]);
     }
 
     #[test]
-    fn test_start_and_stop_starts_and_stops_the_logging() {
+    fn test_stop_stops_the_logging() {
         let mut target = new_log_reader();
         let mut buffer = vec![0; 4];
-        target.read(&mut buffer).unwrap();
+        target.read_exact(&mut buffer).unwrap();
         assert_eq!(target.logged(), &vec![0, 1, 2, 3]);
 
         target.stop();
-        target.read(&mut buffer).unwrap();
+        target.read_exact(&mut buffer).unwrap();
         assert_eq!(target.logged(), &vec![0, 1, 2, 3]);
-
-        target.start();
-        target.read(&mut buffer).unwrap();
-        assert_eq!(target.logged(), &vec![0, 1, 2, 3, 8, 9, 10, 11]);
     }
 
     fn new_log_reader() -> LogReader<Cursor<Vec<u8>>> {

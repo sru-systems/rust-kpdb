@@ -7,6 +7,11 @@
 // except according to those terms.
 
 pub mod aes256;
+pub mod argon2;
+pub mod chacha20;
+pub mod hmac;
+pub mod inner_cipher;
 pub mod random_gen;
 pub mod salsa20;
 pub mod sha256;
+pub mod sha512;

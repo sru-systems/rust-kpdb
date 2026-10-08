@@ -45,7 +45,7 @@ impl KeyFile {
     pub fn new_binary() -> Result<KeyFile> {
         let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
-            key: key,
+            key,
             file_type: KeyFileType::Binary,
         })
     }
@@ -66,7 +66,7 @@ impl KeyFile {
     pub fn new_hex() -> Result<KeyFile> {
         let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
-            key: key,
+            key,
             file_type: KeyFileType::Hex,
         })
     }
@@ -87,7 +87,7 @@ impl KeyFile {
     pub fn new_xml() -> Result<KeyFile> {
         let key = KeyFile::get_random_key()?;
         Ok(KeyFile {
-            key: key,
+            key,
             file_type: KeyFileType::Xml,
         })
     }

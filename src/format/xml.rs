@@ -9,7 +9,7 @@
 //! Module containing functions for reading and writing XML.
 
 use crate::compression::gzip;
-use crate::crypto::salsa20::{self, Salsa20};
+use crate::crypto::inner_cipher::InnerCipher;
 use crate::types::BinaryId;
 use crate::types::BinaryKey;
 use crate::types::BinaryValue;
@@ -61,7 +61,7 @@ pub fn read_binary_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<Ve
 /// Attempts to read an optional binary value.
 pub fn read_binary_value_opt<R: Read>(
     reader: &mut EventReader<R>,
-    cipher: &mut Salsa20,
+    cipher: &mut InnerCipher,
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<BinaryValue>> {
     let ref_value = search_attr_value(attrs, "ref");
@@ -71,7 +71,7 @@ pub fn read_binary_value_opt<R: Read>(
         None => match read_binary_opt(reader)? {
             Some(bytes) => {
                 if protected {
-                    let pbytes = salsa20::decrypt(cipher, &bytes);
+                    let pbytes = cipher.decrypt(&bytes);
                     let secstr = SecStr::new(pbytes);
                     Ok(Some(BinaryValue::Protected(secstr)))
                 } else {
@@ -134,10 +134,30 @@ pub fn read_custom_icon_uuid_opt<R: Read>(
 /// Attempts to read a date and time.
 pub fn read_datetime<R: Read>(reader: &mut EventReader<R>) -> Result<DateTime<Utc>> {
     match read_string_opt(reader)? {
-        Some(string) => match string.parse::<DateTime<Utc>>() {
-            Ok(datetime) => Ok(datetime),
-            Err(err) => read_err(reader, format!("DateTime {}", err)),
-        },
+        Some(string) => {
+            // Try base64 encoded seconds since 0001-01-01 (KDBX4)
+            if let Ok(bytes) = general_purpose::STANDARD.decode(&string) {
+                if bytes.len() >= 8 {
+                    // Use first 8 bytes as LE u64
+                    let mut arr = [0u8; 8];
+                    arr.copy_from_slice(&bytes[0..8]);
+                    let secs = u64::from_le_bytes(arr);
+                    // Base date 0001-01-01 00:00:00 UTC (before the Unix epoch),
+                    // matching KeePassXC: QDateTime(QDate(1,1,1), QTime(0,0,0), UTC).addSecs(secs)
+                    let base_date = chrono::NaiveDate::from_ymd_opt(1, 1, 1)
+                        .unwrap()
+                        .and_hms_opt(0, 0, 0)
+                        .unwrap();
+                    let dt = base_date + chrono::Duration::seconds(secs as i64);
+                    return Ok(DateTime::<Utc>::from_naive_utc_and_offset(dt, Utc));
+                }
+            }
+            // Fallback to ISO8601 parsing
+            match string.parse::<DateTime<Utc>>() {
+                Ok(datetime) => Ok(datetime),
+                Err(err) => read_err(reader, format!("DateTime {}", err)),
+            }
+        }
         None => read_err(reader, "No DateTime value found"),
     }
 }
@@ -242,7 +262,7 @@ pub fn read_string_opt<R: Read>(reader: &mut EventReader<R>) -> Result<Option<St
 /// Attempts to read an optional string value.
 pub fn read_string_value_opt<R: Read>(
     reader: &mut EventReader<R>,
-    cipher: &mut Salsa20,
+    cipher: &mut InnerCipher,
     attrs: &Vec<OwnedAttribute>,
 ) -> Result<Option<StringValue>> {
     let pmem = get_protect_in_memory_attr_value(reader, attrs)?;
@@ -251,7 +271,7 @@ pub fn read_string_value_opt<R: Read>(
     if pxml {
         match read_binary_opt(reader)? {
             Some(bytes) => {
-                let pbytes = salsa20::decrypt(cipher, &bytes);
+                let pbytes = cipher.decrypt(&bytes);
                 match String::from_utf8(pbytes) {
                     Ok(string) => Ok(Some(StringValue::new(string, protected))),
                     Err(err) => read_err(reader, format!("UTF8 {}", err)),
@@ -298,7 +318,7 @@ pub fn search_attr_value(attrs: &Vec<OwnedAttribute>, name: &str) -> Option<Stri
 
 /// Attempts to write binary data.
 pub fn write_binary<W: Write>(writer: &mut EventWriter<W>, data: &[u8]) -> Result<()> {
-    write_string(writer, &general_purpose::STANDARD.encode(&data))
+    write_string(writer, &general_purpose::STANDARD.encode(data))
 }
 
 /// Attempts to write a tag that contains binary data.
@@ -307,7 +327,7 @@ pub fn write_binary_tag<W: Write>(
     tag: &str,
     value: &[u8],
 ) -> Result<()> {
-    write_string_tag(writer, tag, &general_purpose::STANDARD.encode(&value))
+    write_string_tag(writer, tag, &general_purpose::STANDARD.encode(value))
 }
 
 /// Attempts to write a tag that contains optional boolean data.
@@ -392,8 +412,8 @@ pub fn write_start_tag<W: Write>(writer: &mut EventWriter<W>, tag: &str) -> Resu
 }
 
 /// Attempts to write string data.
-pub fn write_string<W: Write>(writer: &mut EventWriter<W>, value: &String) -> Result<()> {
-    writer.write(value.as_str())?;
+pub fn write_string<W: Write>(writer: &mut EventWriter<W>, value: &str) -> Result<()> {
+    writer.write(value)?;
     Ok(())
 }
 
@@ -401,7 +421,7 @@ pub fn write_string<W: Write>(writer: &mut EventWriter<W>, value: &String) -> Re
 pub fn write_string_tag<W: Write>(
     writer: &mut EventWriter<W>,
     tag: &str,
-    value: &String,
+    value: &str,
 ) -> Result<()> {
     write_start_tag(writer, tag)?;
     write_string(writer, value)?;

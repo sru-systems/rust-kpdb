@@ -6,10 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+pub use self::hmac_block_reader::HmacBlockReader;
+pub use self::hmac_block_writer::write_hmac_blocks;
 pub use self::log::Log;
 pub use self::log_reader::LogReader;
 pub use self::log_writer::LogWriter;
 
+mod hmac_block_reader;
+mod hmac_block_writer;
 mod log;
 mod log_reader;
 mod log_writer;

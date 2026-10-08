@@ -57,11 +57,7 @@ impl Color {
             let red = from_hex_string_red(hex)?;
             let green = from_hex_string_green(hex)?;
             let blue = from_hex_string_blue(hex)?;
-            Ok(Color {
-                red: red,
-                green: green,
-                blue: blue,
-            })
+            Ok(Color { red, green, blue })
         }
     }
 
@@ -236,7 +232,7 @@ mod tests {
 
     quickcheck! {
         fn test_from_hex_string_inverses_to_hex_string(red: u8, green: u8, blue: u8) -> bool {
-            let color = Color { red: red, green: green, blue: blue };
+            let color = Color { red, green, blue };
             Color::from_hex_string(&color.to_hex_string()) == Ok(color)
         }
     }

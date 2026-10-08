@@ -129,6 +129,7 @@
 
 extern crate xml as rust_xml;
 
+pub use crate::types::Argon2Variant;
 pub use crate::types::Association;
 pub use crate::types::BinariesMap;
 pub use crate::types::BinaryId;
@@ -147,16 +148,24 @@ pub use crate::types::EntryUuid;
 pub use crate::types::Error;
 pub use crate::types::Group;
 pub use crate::types::GroupUuid;
+pub use crate::types::HmacKey;
+pub use crate::types::KdfConfig;
 pub use crate::types::KeyFile;
 pub use crate::types::KeyFileType;
 pub use crate::types::MasterCipher;
+pub use crate::types::MasterIV;
+pub use crate::types::MasterKey;
+pub use crate::types::MasterSeed;
+pub use crate::types::ProtectedStreamKey;
 pub use crate::types::Result;
 pub use crate::types::StreamCipher;
+pub use crate::types::StreamStartBytes;
 pub use crate::types::StringKey;
 pub use crate::types::StringValue;
 pub use crate::types::StringsMap;
 pub use crate::types::Times;
 pub use crate::types::TransformRounds;
+pub use crate::types::TransformSeed;
 pub use crate::types::Version;
 pub use crate::types::{Color, ColorError};
 pub use crate::types::{Icon, IconError};

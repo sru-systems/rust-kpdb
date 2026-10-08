@@ -14,4 +14,7 @@ pub enum DbType {
 
     /// KeePass 2 and KeePassX.
     Kdb2,
+
+    /// KeePass 2 with the KDBX4 format.
+    Kdb4,
 }

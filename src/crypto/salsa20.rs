@@ -14,12 +14,12 @@ const SALSA20_NOUNCE: [u8; 8] = [0xe8, 0x30, 0x09, 0x4b, 0x97, 0x20, 0x5d, 0x2a]
 pub use salsa20::Salsa20;
 
 /// Decrypt the input using the Salsa20 stream cipher.
-pub fn decrypt(cipher: &mut Salsa20, input: &Vec<u8>) -> Vec<u8> {
+pub fn decrypt(cipher: &mut Salsa20, input: &[u8]) -> Vec<u8> {
     process(cipher, input)
 }
 
 /// Encrypt the input using the Salsa20 stream cipher.
-pub fn encrypt(cipher: &mut Salsa20, input: &Vec<u8>) -> Vec<u8> {
+pub fn encrypt(cipher: &mut Salsa20, input: &[u8]) -> Vec<u8> {
     process(cipher, input)
 }
 
@@ -28,8 +28,8 @@ pub fn new_cipher(key: &StreamKey) -> Salsa20 {
     Salsa20::new(&key.unpack().into(), &SALSA20_NOUNCE.into())
 }
 
-fn process(cipher: &mut Salsa20, input: &Vec<u8>) -> Vec<u8> {
-    let mut buffer = input.clone();
+fn process(cipher: &mut Salsa20, input: &[u8]) -> Vec<u8> {
+    let mut buffer = input.to_vec();
     cipher.apply_keystream(&mut buffer);
     buffer
 }
@@ -43,7 +43,7 @@ mod tests {
 
     quickcheck! {
         fn test_decrypt_inverses_encrypt(data: Vec<u8>) -> bool {
-            let stream_key = StreamKey::new(&ProtectedStreamKey([1u8; 32]));
+            let stream_key = StreamKey::new(&ProtectedStreamKey(vec![1u8; 32]));
             let mut encryptor = new_cipher(&stream_key);
             let mut decryptor = new_cipher(&stream_key);
             let encrypted = encrypt(&mut encryptor, &data);

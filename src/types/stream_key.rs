@@ -16,7 +16,7 @@ pub struct StreamKey([u8; 32]);
 impl StreamKey {
     /// Create a new stream key.
     pub fn new(key: &ProtectedStreamKey) -> StreamKey {
-        StreamKey(sha256::hash(&[&key.0]))
+        StreamKey(sha256::hash(&[key.0.as_slice()]))
     }
 
     /// Gets the data from this stream key.
@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     fn test_new_returns_correct_instance() {
-        let protected_stream_key = ProtectedStreamKey([1u8; 32]);
+        let protected_stream_key = ProtectedStreamKey(vec![1u8; 32]);
         let array = [
             114, 205, 110, 132, 34, 196, 7, 251, 109, 9, 134, 144, 241, 19, 11, 125, 237, 126, 194,
             247, 245, 225, 211, 11, 217, 213, 33, 240, 21, 54, 55, 147,
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_unpack_returns_correct_array() {
         let expected = [2u8; 32];
-        let target = StreamKey(expected.clone());
+        let target = StreamKey(expected);
         let actual = target.unpack();
         assert_eq!(actual, expected);
     }

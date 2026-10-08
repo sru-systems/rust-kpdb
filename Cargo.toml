@@ -18,6 +18,7 @@ name = "kpdb"
 
 [dependencies]
 aes = "0.8"
+argon2 = "0.5"
 base64 = "0.22"
 block-padding = "0.4"
 byteorder = "1"
@@ -26,8 +27,10 @@ chrono = "0.4"
 cipher = "0.4"
 flate2 = "1.1"
 hex = "0.4.3"
+hmac = "0.13"
 rand = "0.8"
 salsa20 = "0.11"
+chacha20 = "0.9"
 secstr = "0.5.1"
 sha2 = "0.11"
 uuid = { version = "1.23", features = ["v4"] }

@@ -8,11 +8,16 @@
 
 pub mod kdb2_reader;
 pub mod kdb2_writer;
+pub mod kdb4_header;
+pub mod kdb4_reader;
+pub mod kdb4_writer;
+pub mod kdf;
 pub mod kf_reader;
 pub mod kf_writer;
 
 mod kdb2;
-mod kdb2_xml_reader;
-mod kdb2_xml_writer;
+mod kdb4;
 mod kf;
 mod xml;
+mod xml_reader;
+mod xml_writer;

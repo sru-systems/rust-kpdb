@@ -11,4 +11,6 @@
 pub enum StreamCipher {
     /// The Salsa20 stream cipher.
     Salsa20,
+    /// The ChaCha20 stream cipher (KDBX4).
+    ChaCha20,
 }

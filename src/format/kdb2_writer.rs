@@ -8,16 +8,18 @@
 
 //! The database writer for KeePass 2 databases.
 
-use super::{kdb2, kdb2_xml_writer};
+use super::{kdb2, xml_writer};
 use crate::common;
 use crate::compression::gzip;
 use crate::crypto::aes256;
+use crate::crypto::inner_cipher::InnerCipher;
 use crate::crypto::random_gen::RandomGen;
 use crate::crypto::sha256;
 use crate::io::Log;
 use crate::types::Comment;
 use crate::types::Compression;
 use crate::types::Database;
+use crate::types::Error;
 use crate::types::HeaderHash;
 use crate::types::MasterCipher;
 use crate::types::MasterIV;
@@ -26,7 +28,6 @@ use crate::types::MasterSeed;
 use crate::types::ProtectedStreamKey;
 use crate::types::Result;
 use crate::types::StreamCipher;
-use crate::types::StreamKey;
 use crate::types::StreamStartBytes;
 use crate::types::TransformRounds;
 use crate::types::TransformSeed;
@@ -41,11 +42,10 @@ pub fn write<W: Log + Write>(writer: &mut W, db: &Database) -> Result<()> {
     let transform_seed = TransformSeed(random.next_32_bytes());
     let transformed_key =
         TransformedKey::new(&db.composite_key, &transform_seed, &db.transform_rounds);
-    let master_iv = MasterIV(random.next_16_bytes());
+    let master_iv = MasterIV::Aes256(random.next_16_bytes());
     let master_seed = MasterSeed(random.next_32_bytes());
     let master_key = MasterKey::new(&master_seed, &transformed_key);
-    let protected_stream_key = ProtectedStreamKey(random.next_32_bytes());
-    let stream_key = StreamKey::new(&protected_stream_key);
+    let protected_stream_key = ProtectedStreamKey(random.next_32_bytes().to_vec());
     let stream_start_bytes = StreamStartBytes(random.next_32_bytes());
 
     write_sig_1(writer)?;
@@ -63,43 +63,44 @@ pub fn write<W: Log + Write>(writer: &mut W, db: &Database) -> Result<()> {
     write_stream_start_bytes(writer, &stream_start_bytes)?;
     write_end_header(writer)?;
 
-    let hash = HeaderHash(sha256::hash(&[&writer.logged()]).to_vec());
+    let hash = HeaderHash(sha256::hash(&[writer.logged()]).to_vec());
     writer.stop();
     writer.clear();
 
     let mut xml = Vec::new();
-    kdb2_xml_writer::write(&mut xml, db, &hash, &stream_key)?;
+    let mut cipher = InnerCipher::new(&db.stream_cipher, &protected_stream_key);
+    xml_writer::write(&mut xml, db, &hash, &db.binaries, &mut cipher)?;
 
     let mut payload = Vec::new();
-    payload.write(&stream_start_bytes.0)?;
+    payload.write_all(&stream_start_bytes.0)?;
 
     let compressed = compress(&db.compression, &xml)?;
     write_block(&mut payload, 0, &compressed)?;
     write_block_final(&mut payload, 1)?;
 
     let encrypted = aes256::encrypt(&master_key, &master_iv, &payload)?;
-    writer.write(&encrypted)?;
+    writer.write_all(&encrypted)?;
 
     Ok(())
 }
 
 fn write_block<W: Write>(writer: &mut W, id: u32, data: &[u8]) -> Result<()> {
     writer.write_u32::<LittleEndian>(id)?;
-    writer.write(&sha256::hash(&[data]))?;
+    writer.write_all(&sha256::hash(&[data]))?;
     writer.write_u32::<LittleEndian>(data.len() as u32)?;
-    writer.write(data)?;
+    writer.write_all(data)?;
     Ok(())
 }
 
 fn write_block_final<W: Write>(writer: &mut W, id: u32) -> Result<()> {
     writer.write_u32::<LittleEndian>(id)?;
-    writer.write(&kdb2::FINAL_BLOCK_HASH)?;
+    writer.write_all(&kdb2::FINAL_BLOCK_HASH)?;
     writer.write_u32::<LittleEndian>(0)?;
     Ok(())
 }
 
 fn write_bytes<W: Write>(writer: &mut W, bytes: &[u8]) -> Result<()> {
-    writer.write(bytes)?;
+    writer.write_all(bytes)?;
     Ok(())
 }
 
@@ -147,6 +148,11 @@ fn write_master_cipher<W: Write>(writer: &mut W, cipher: &MasterCipher) -> Resul
     write_header_size(writer, kdb2::MASTER_CIPHER_SIZE)?;
     match *cipher {
         MasterCipher::Aes256 => write_bytes(writer, &kdb2::AES_CIPHER_ID)?,
+        MasterCipher::ChaCha20 => {
+            return Err(Error::Unimplemented(String::from(
+                "ChaCha20 master cipher for kdb2 database",
+            )))
+        }
     }
     Ok(())
 }
@@ -154,7 +160,7 @@ fn write_master_cipher<W: Write>(writer: &mut W, cipher: &MasterCipher) -> Resul
 fn write_master_iv<W: Write>(writer: &mut W, iv: &MasterIV) -> Result<()> {
     write_header_id(writer, kdb2::MASTER_IV_HID)?;
     write_header_size(writer, kdb2::MASTER_IV_SIZE)?;
-    write_bytes(writer, &iv.0)?;
+    write_bytes(writer, iv.as_bytes())?;
     Ok(())
 }
 
@@ -173,12 +179,12 @@ fn write_protected_stream_key<W: Write>(writer: &mut W, key: &ProtectedStreamKey
 }
 
 fn write_sig_1<W: Write>(writer: &mut W) -> Result<()> {
-    writer.write(&common::DB_SIGNATURE)?;
+    writer.write_all(&common::DB_SIGNATURE)?;
     Ok(())
 }
 
 fn write_sig_2<W: Write>(writer: &mut W) -> Result<()> {
-    writer.write(&common::KDB2_SIGNATURE)?;
+    writer.write_all(&common::KDB2_SIGNATURE)?;
     Ok(())
 }
 
@@ -187,6 +193,7 @@ fn write_stream_cipher<W: Write>(writer: &mut W, cipher: &StreamCipher) -> Resul
     write_header_size(writer, kdb2::STREAM_CIPHER_SIZE)?;
     let id = match *cipher {
         StreamCipher::Salsa20 => 2u32,
+        StreamCipher::ChaCha20 => 3u32,
     };
     writer.write_u32::<LittleEndian>(id)?;
     Ok(())

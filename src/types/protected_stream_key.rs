@@ -8,4 +8,4 @@
 
 /// Key used for creating the stream key.
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
-pub struct ProtectedStreamKey(pub [u8; 32]);
+pub struct ProtectedStreamKey(pub Vec<u8>);

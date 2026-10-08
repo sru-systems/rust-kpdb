@@ -9,6 +9,7 @@
 use super::comment::Comment;
 use super::compression::Compression;
 use super::header_hash::HeaderHash;
+use super::kdf_config::KdfConfig;
 use super::master_cipher::MasterCipher;
 use super::stream_cipher::StreamCipher;
 use super::transform_rounds::TransformRounds;
@@ -34,6 +35,9 @@ pub struct MetaData {
 
     /// Number of times the composite key must be transformed.
     pub transform_rounds: TransformRounds,
+
+    /// The configuration of the key derivation function.
+    pub kdf: KdfConfig,
 
     /// Database version.
     pub version: Version,

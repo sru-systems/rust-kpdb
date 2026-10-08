@@ -36,7 +36,7 @@ impl CompositeKey {
     /// ```
     pub fn from_both<S: Into<String>>(password: S, key_file: KeyFile) -> CompositeKey {
         let password = sha256::hash(&[&password.into().into_bytes()]);
-        let combined = sha256::hash(&[&password, &key_file.key.unsecure()]);
+        let combined = sha256::hash(&[&password, key_file.key.unsecure()]);
         CompositeKey::secure(combined)
     }
 
@@ -57,7 +57,7 @@ impl CompositeKey {
     /// # }
     /// ```
     pub fn from_key_file(key_file: KeyFile) -> CompositeKey {
-        let combined = sha256::hash(&[&key_file.key.unsecure()]);
+        let combined = sha256::hash(&[key_file.key.unsecure()]);
         CompositeKey::secure(combined)
     }
 
@@ -147,7 +147,7 @@ mod tests {
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
             25, 26, 27, 28, 29, 30, 31, 32,
         ];
-        let expected = array.clone();
+        let expected = array;
         let actual = CompositeKey::unsecure(&CompositeKey::secure(array));
         assert_eq!(actual, expected);
     }

@@ -11,4 +11,7 @@
 pub enum MasterCipher {
     /// Advanced Encryption Standard (Rijndael) with 256 bit key.
     Aes256,
+
+    /// The ChaCha20 stream cipher.
+    ChaCha20,
 }

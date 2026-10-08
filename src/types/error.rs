@@ -34,6 +34,9 @@ pub enum Error {
     /// The header hash is invalid (doesn't match expected hash).
     InvalidHeaderHash,
 
+    /// The data is invalid.
+    InvalidData,
+
     /// The size of a header is invalid
     InvalidHeaderSize {
         /// Header identifier.
@@ -57,6 +60,12 @@ pub enum Error {
 
     /// The supplied header is missing.
     MissingHeader(u8),
+
+    /// The version of a variant dictionary is not supported.
+    InvalidVariantDictionaryVersion(u16),
+
+    /// The value type of a variant dictionary is not supported.
+    UnhandledVariantValueType(u8),
 
     /// The compression algorithm specified in the headers is not supported.
     UnhandledCompression(u32),
@@ -100,10 +109,17 @@ impl fmt::Display for Error {
                 )
             }
             Error::InvalidHeaderHash => write!(f, "Invalid header hash"),
+            Error::InvalidData => write!(f, "Invalid data"),
             Error::InvalidKey => write!(f, "Invalid key"),
             Error::InvalidKeyFile => write!(f, "Invalid key file"),
             Error::Io(ref err) => write!(f, "IO error: {}", err),
             Error::MissingHeader(val) => write!(f, "Missing header: {}", val),
+            Error::InvalidVariantDictionaryVersion(val) => {
+                write!(f, "Invalid variant dictionary version: {}", val)
+            }
+            Error::UnhandledVariantValueType(val) => {
+                write!(f, "Unhandled variant dictionary value type: {}", val)
+            }
             Error::UnhandledCompression(val) => write!(f, "Unhandled compression: {}", val),
             Error::UnhandledDbType(val) => write!(f, "Unhandled database type: {:?}", val),
             Error::UnhandledHeader(val) => write!(f, "Unhandled header: {}", val),

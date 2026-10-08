@@ -15,19 +15,19 @@ pub const BINARY_KEY_FILE_LEN: usize = 32;
 pub const HEX_KEY_FILE_LEN: usize = 64;
 
 /// The version of the XML key file.
-pub const XML_KEY_FILE_VERSION: &'static str = "1.00";
+pub const XML_KEY_FILE_VERSION: &str = "1.00";
 
 /// The <KeyFile> tag.
-pub const KEY_FILE_TAG: &'static str = "KeyFile";
+pub const KEY_FILE_TAG: &str = "KeyFile";
 
 /// The <Meta> tag.
-pub const META_TAG: &'static str = "Meta";
+pub const META_TAG: &str = "Meta";
 
 /// The <Version> tag.
-pub const VERSION_TAG: &'static str = "Version";
+pub const VERSION_TAG: &str = "Version";
 
 /// The <Key> tag.
-pub const KEY_TAG: &'static str = "Key";
+pub const KEY_TAG: &str = "Key";
 
 /// The <Data> tag.
-pub const DATA_TAG: &'static str = "Data";
+pub const DATA_TAG: &str = "Data";

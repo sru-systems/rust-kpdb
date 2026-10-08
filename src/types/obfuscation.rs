@@ -11,8 +11,9 @@ use std::fmt;
 use std::result::Result;
 
 /// The type of obfuscation to use.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub enum Obfuscation {
+    #[default]
     None,
     UseClipboard,
 }
@@ -51,12 +52,6 @@ impl Obfuscation {
     /// ```
     pub fn to_i32(self) -> i32 {
         self as i32
-    }
-}
-
-impl Default for Obfuscation {
-    fn default() -> Obfuscation {
-        Obfuscation::None
     }
 }
 

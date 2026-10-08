@@ -6,13 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use crate::crypto::aes256;
 use crate::crypto::sha256;
 use crate::types::composite_key::CompositeKey;
 use crate::types::transform_rounds::TransformRounds;
 use crate::types::transform_seed::TransformSeed;
 
-use aes::Aes256;
-use cipher::{generic_array::GenericArray, BlockEncrypt, KeyInit};
 use secstr::SecStr;
 
 /// Key used for generating the master key.
@@ -29,19 +28,17 @@ impl TransformedKey {
         seed: &TransformSeed,
         rounds: &TransformRounds,
     ) -> TransformedKey {
-        let mut tmp_key: [u8; 32] = key.unsecure().clone().into();
-        let cipher = Aes256::new(&seed.0.into());
+        let mut tmp_key: [u8; 32] = key.unsecure();
         for _ in 0..rounds.0 {
-            let mut blocks = [
-                GenericArray::clone_from_slice(&tmp_key[0..16]).clone(),
-                GenericArray::clone_from_slice(&tmp_key[16..32]).clone(),
-            ];
-            cipher.encrypt_blocks(&mut blocks);
-            tmp_key[0..16].copy_from_slice(&blocks[0]);
-            tmp_key[16..32].copy_from_slice(&blocks[1]);
+            aes256::encrypt_blocks(&seed.0, &mut tmp_key);
         }
 
         TransformedKey::secure(sha256::hash(&[&tmp_key]))
+    }
+
+    /// Create a new transformed key from the result of a key derivation function.
+    pub fn from_kdf(key: [u8; 32]) -> TransformedKey {
+        TransformedKey::secure(key)
     }
 
     /// Gets the protected data from this transformed key.
@@ -85,7 +82,7 @@ mod tests {
             1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
             25, 26, 27, 28, 29, 30, 31, 32,
         ];
-        let expected = array.clone();
+        let expected = array;
         let actual = TransformedKey::unsecure(&TransformedKey::secure(array));
         assert_eq!(actual, expected);
     }

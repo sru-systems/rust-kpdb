@@ -23,13 +23,13 @@ pub fn write<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
 }
 
 fn write_binary<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
-    writer.write(key.key.unsecure())?;
+    writer.write_all(key.key.unsecure())?;
     Ok(())
 }
 
 fn write_hex<W: Write>(writer: &mut W, key: &KeyFile) -> Result<()> {
     let hex = hex::encode(key.key.unsecure());
-    writer.write(&hex.into_bytes())?;
+    writer.write_all(&hex.into_bytes())?;
     Ok(())
 }
 

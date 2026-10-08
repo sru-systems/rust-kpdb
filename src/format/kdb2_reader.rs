@@ -9,9 +9,10 @@
 //! The database reader for KeePass 2 databases.
 
 use super::kdb2;
-use super::kdb2_xml_reader;
+use super::xml_reader;
 use crate::compression::gzip;
 use crate::crypto::aes256;
+use crate::crypto::inner_cipher::InnerCipher;
 use crate::crypto::sha256;
 use crate::io::Log;
 use crate::types::Comment;
@@ -19,6 +20,7 @@ use crate::types::CompositeKey;
 use crate::types::Compression;
 use crate::types::Error;
 use crate::types::HeaderHash;
+use crate::types::KdfConfig;
 use crate::types::MasterCipher;
 use crate::types::MasterIV;
 use crate::types::MasterKey;
@@ -27,7 +29,6 @@ use crate::types::MetaData;
 use crate::types::ProtectedStreamKey;
 use crate::types::Result;
 use crate::types::StreamCipher;
-use crate::types::StreamKey;
 use crate::types::StreamStartBytes;
 use crate::types::TransformRounds;
 use crate::types::TransformSeed;
@@ -38,11 +39,14 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read};
 
 /// Attempts to read the database content from the reader.
-pub fn read<R>(reader: &mut R, composite_key: &CompositeKey) -> Result<(MetaData, XmlData)>
+pub fn read<R>(
+    reader: &mut R,
+    composite_key: &CompositeKey,
+    version: Version,
+) -> Result<(MetaData, XmlData)>
 where
     R: Log + Read,
 {
-    let version = read_version(reader)?;
     let mut comment: Option<Comment> = None;
     let mut compression: Option<Compression> = None;
     let mut master_cipher: Option<MasterCipher> = None;
@@ -120,9 +124,8 @@ where
     let transform_rounds = get_header(transform_rounds, kdb2::TRANSFORM_ROUNDS_HID)?;
     let transform_seed = get_header(transform_seed, kdb2::TRANSFORM_SEED_HID)?;
 
-    let transformed_key = TransformedKey::new(&composite_key, &transform_seed, &transform_rounds);
+    let transformed_key = TransformedKey::new(composite_key, &transform_seed, &transform_rounds);
     let master_key = MasterKey::new(&master_seed, &transformed_key);
-    let stream_key = StreamKey::new(&protected_stream_key);
 
     let encrypted = read_enc_payload(reader)?;
     let payload = aes256::decrypt(&master_key, &master_iv, &encrypted)?;
@@ -132,15 +135,17 @@ where
     }
 
     let xml_bytes = read_xml_bytes(&compression, &payload[32..])?;
-    let xml_data = kdb2_xml_reader::read(&mut Cursor::new(xml_bytes), &stream_key)?;
+    let mut cipher = InnerCipher::new(&stream_cipher, &protected_stream_key);
+    let xml_data = xml_reader::read(&mut Cursor::new(xml_bytes), &mut cipher)?;
     let meta_data = MetaData {
-        comment: comment,
-        compression: compression,
-        header_hash: header_hash,
-        master_cipher: master_cipher,
-        stream_cipher: stream_cipher,
-        transform_rounds: transform_rounds,
-        version: version,
+        comment,
+        compression,
+        header_hash,
+        master_cipher,
+        stream_cipher,
+        transform_rounds,
+        kdf: KdfConfig::AesKdf,
+        version,
     };
 
     Ok((meta_data, xml_data))
@@ -186,7 +191,7 @@ fn read_master_cipher<R: Read>(reader: &mut R) -> Result<MasterCipher> {
     let size = reader.read_u16::<LittleEndian>()?;
     if size == kdb2::MASTER_CIPHER_SIZE {
         let data = read_bytes_16(reader)?;
-        if data == &kdb2::AES_CIPHER_ID[..] {
+        if data == kdb2::AES_CIPHER_ID {
             Ok(MasterCipher::Aes256)
         } else {
             Err(Error::UnhandledMasterCipher(data))
@@ -204,7 +209,7 @@ fn read_master_iv<R: Read>(reader: &mut R) -> Result<MasterIV> {
     let size = reader.read_u16::<LittleEndian>()?;
     if size == kdb2::MASTER_IV_SIZE {
         let data = read_bytes_16(reader)?;
-        Ok(MasterIV(data))
+        Ok(MasterIV::Aes256(data))
     } else {
         Err(Error::InvalidHeaderSize {
             id: kdb2::MASTER_IV_HID,
@@ -232,7 +237,7 @@ fn read_protected_stream_key<R: Read>(reader: &mut R) -> Result<ProtectedStreamK
     let size = reader.read_u16::<LittleEndian>()?;
     if size == kdb2::PROTECTED_STREAM_KEY_SIZE {
         let data = read_bytes_32(reader)?;
-        Ok(ProtectedStreamKey(data))
+        Ok(ProtectedStreamKey(data.to_vec()))
     } else {
         Err(Error::InvalidHeaderSize {
             id: kdb2::PROTECTED_STREAM_KEY_HID,
@@ -248,6 +253,7 @@ fn read_stream_cipher<R: Read>(reader: &mut R) -> Result<StreamCipher> {
         let data = reader.read_u32::<LittleEndian>()?;
         match data {
             2 => Ok(StreamCipher::Salsa20),
+            3 => Ok(StreamCipher::ChaCha20),
             _ => Err(Error::UnhandledStreamCipher(data)),
         }
     } else {
@@ -301,20 +307,11 @@ fn read_transform_seed<R: Read>(reader: &mut R) -> Result<TransformSeed> {
     }
 }
 
-fn read_version<R: Read>(reader: &mut R) -> Result<Version> {
-    let minor = reader.read_u16::<LittleEndian>()?;
-    let major = reader.read_u16::<LittleEndian>()?;
-    Ok(Version {
-        major: major,
-        minor: minor,
-    })
-}
-
 fn read_xml_bytes(compression: &Compression, payload: &[u8]) -> Result<Vec<u8>> {
     let mut reader = Cursor::new(payload);
     let mut xml = Vec::new();
 
-    for block_id in 0..u32::max_value() {
+    for block_id in 0..u32::MAX {
         let id = reader.read_u32::<LittleEndian>()?;
         let hash = read_bytes_32(&mut reader)?;
         let size = reader.read_u32::<LittleEndian>()? as usize;
@@ -346,19 +343,19 @@ fn read_xml_bytes(compression: &Compression, payload: &[u8]) -> Result<Vec<u8>> 
 
 fn read_bytes_16<R: Read>(reader: &mut R) -> Result<[u8; 16]> {
     let mut data = [0; 16];
-    reader.read(&mut data)?;
+    reader.read_exact(&mut data)?;
     Ok(data)
 }
 
 fn read_bytes_32<R: Read>(reader: &mut R) -> Result<[u8; 32]> {
     let mut data = [0; 32];
-    reader.read(&mut data)?;
+    reader.read_exact(&mut data)?;
     Ok(data)
 }
 
 fn read_bytes_size<R: Read>(reader: &mut R, size: &usize) -> Result<Vec<u8>> {
     let mut data = vec![0; *size];
-    reader.read(&mut data)?;
+    reader.read_exact(&mut data)?;
     Ok(data)
 }
 

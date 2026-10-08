@@ -96,9 +96,10 @@ pub struct Entry {
 impl Entry {
     /// Create a new entry.
     pub fn new() -> Entry {
-        let mut entry = Entry::default();
-        entry.uuid = EntryUuid::new_random();
-        entry
+        Entry {
+            uuid: EntryUuid::new_random(),
+            ..Entry::default()
+        }
     }
 
     /// Gets the notes string if any.
@@ -109,8 +110,8 @@ impl Entry {
     /// Gets an other string if any.
     pub fn other(&self, key: StringKey) -> Option<&str> {
         match self.strings.get(&key) {
-            Some(&StringValue::Plain(ref string)) => Some(string),
-            Some(&StringValue::Protected(ref secstr)) => str::from_utf8(secstr.unsecure()).ok(),
+            Some(StringValue::Plain(string)) => Some(string),
+            Some(StringValue::Protected(secstr)) => str::from_utf8(secstr.unsecure()).ok(),
             None => None,
         }
     }
@@ -278,13 +279,13 @@ mod tests {
         let entry = Entry::new();
         assert_eq!(entry.associations, Vec::new());
         assert_eq!(entry.auto_type_def_sequence, "");
-        assert_eq!(entry.auto_type_enabled, true);
+        assert!(entry.auto_type_enabled);
         assert_eq!(entry.auto_type_obfuscation, Obfuscation::None);
         assert_eq!(entry.background_color, None);
         assert_eq!(entry.binaries, HashMap::new());
         assert!(approx_equal_datetime(entry.creation_time, now));
         assert_eq!(entry.custom_icon_uuid, None);
-        assert_eq!(entry.expires, false);
+        assert!(!entry.expires);
         assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
         assert_eq!(entry.history, Vec::new());
@@ -385,13 +386,13 @@ mod tests {
         let entry = Entry::default();
         assert_eq!(entry.associations, Vec::new());
         assert_eq!(entry.auto_type_def_sequence, "");
-        assert_eq!(entry.auto_type_enabled, true);
+        assert!(entry.auto_type_enabled);
         assert_eq!(entry.auto_type_obfuscation, Obfuscation::None);
         assert_eq!(entry.background_color, None);
         assert_eq!(entry.binaries, HashMap::new());
         assert!(approx_equal_datetime(entry.creation_time, now));
         assert_eq!(entry.custom_icon_uuid, None);
-        assert_eq!(entry.expires, false);
+        assert!(!entry.expires);
         assert!(approx_equal_datetime(entry.expiry_time, now));
         assert_eq!(entry.foreground_color, None);
         assert_eq!(entry.history, Vec::new());

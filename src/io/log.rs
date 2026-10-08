@@ -14,9 +14,6 @@ pub trait Log {
     /// Gets the logged data.
     fn logged(&self) -> &Vec<u8>;
 
-    /// Starts the logging (the default).
-    fn start(&mut self);
-
     /// Stops the logging.
     fn stop(&mut self);
 }

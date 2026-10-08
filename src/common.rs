@@ -12,7 +12,7 @@
 pub const DB_SIGNATURE: [u8; 4] = [0x03, 0xd9, 0xa2, 0x9a];
 
 /// The name of this generator.
-pub const GENERATOR_NAME: &'static str = "rust-kpdb";
+pub const GENERATOR_NAME: &str = "rust-kpdb";
 
 /// The default value for history max items.
 pub const HISTORY_MAX_ITEMS_DEFAULT: i32 = 10;
@@ -26,8 +26,11 @@ pub const KDB2_MAJOR_VERSION: u16 = 3;
 /// The minor version for kdb2 databases.
 pub const KDB2_MINOR_VERSION: u16 = 1;
 
-/// The signature for kdb1 databases.
-pub const KDB1_SIGNATURE: [u8; 4] = [0x65, 0xfb, 0x4b, 0xb5];
+/// The major version for kdb4 databases.
+pub const KDB4_MAJOR_VERSION: u16 = 4;
+
+/// The minor version for kdb4 databases.
+pub const KDB4_MINOR_VERSION: u16 = 1;
 
 /// The signature for kdb2 databases.
 pub const KDB2_SIGNATURE: [u8; 4] = [0x67, 0xfb, 0x4b, 0xb5];
@@ -60,4 +63,4 @@ pub const PROTECT_USERNAME_DEFAULT: bool = false;
 pub const RECYCLE_BIN_ENABLED_DEFAULT: bool = true;
 
 /// The name of the root group.
-pub const ROOT_GROUP_NAME: &'static str = "Root";
+pub const ROOT_GROUP_NAME: &str = "Root";

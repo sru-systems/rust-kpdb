@@ -20,6 +20,13 @@ impl RandomGen {
         Ok(RandomGen(os_rng))
     }
 
+    /// Gets next 12 random bytes.
+    pub fn next_12_bytes(&mut self) -> [u8; 12] {
+        let mut buffer = [0u8; 12];
+        self.0.fill_bytes(&mut buffer);
+        buffer
+    }
+
     /// Gets next 16 random bytes.
     pub fn next_16_bytes(&mut self) -> [u8; 16] {
         let mut buffer = [0u8; 16];
@@ -30,6 +37,13 @@ impl RandomGen {
     /// Gets next 32 random bytes.
     pub fn next_32_bytes(&mut self) -> [u8; 32] {
         let mut buffer = [0u8; 32];
+        self.0.fill_bytes(&mut buffer);
+        buffer
+    }
+
+    /// Gets next 64 random bytes.
+    pub fn next_64_bytes(&mut self) -> [u8; 64] {
+        let mut buffer = [0u8; 64];
         self.0.fill_bytes(&mut buffer);
         buffer
     }

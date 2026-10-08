@@ -187,13 +187,13 @@ mod tests {
         assert!(approx_equal_datetime(data.master_key_changed, now));
         assert_eq!(data.name, "");
         assert!(approx_equal_datetime(data.name_changed, now));
-        assert_eq!(data.protect_notes, false);
-        assert_eq!(data.protect_password, true);
-        assert_eq!(data.protect_title, false);
-        assert_eq!(data.protect_url, false);
-        assert_eq!(data.protect_username, false);
+        assert!(!data.protect_notes);
+        assert!(data.protect_password);
+        assert!(!data.protect_title);
+        assert!(!data.protect_url);
+        assert!(!data.protect_username);
         assert!(approx_equal_datetime(data.recycle_bin_changed, now));
-        assert_eq!(data.recycle_bin_enabled, true);
+        assert!(data.recycle_bin_enabled);
         assert_eq!(data.recycle_bin_uuid, GroupUuid::nil());
         assert_eq!(data.root_group, None);
     }

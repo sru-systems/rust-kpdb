@@ -54,7 +54,7 @@ fn read_xml<R: Read>(reader: &mut R) -> Result<KeyFile> {
                     opt_key = Some(read_xml_key_file(&mut reader)?);
                 }
             }
-            XmlEvent::EndDocument { .. } => {
+            XmlEvent::EndDocument => {
                 break;
             }
             _ => {}
@@ -63,7 +63,7 @@ fn read_xml<R: Read>(reader: &mut R) -> Result<KeyFile> {
 
     match opt_key {
         Some(key) => Ok(KeyFile {
-            key: key,
+            key,
             file_type: KeyFileType::Xml,
         }),
         None => xml::read_err(&mut reader, "No KeyFile tag found"),
@@ -82,11 +82,7 @@ fn read_xml_key_file<R: Read>(reader: &mut EventReader<R>) -> Result<SecStr> {
                     read_xml_meta(reader)?;
                 }
             }
-            XmlEvent::EndElement { name, .. } => {
-                if name.local_name == kf::KEY_FILE_TAG {
-                    break;
-                }
-            }
+            XmlEvent::EndElement { name, .. } if name.local_name == kf::KEY_FILE_TAG => break,
             _ => {}
         }
     }
@@ -109,11 +105,7 @@ fn read_xml_meta<R: Read>(reader: &mut EventReader<R>) -> Result<()> {
                     }
                 }
             }
-            XmlEvent::EndElement { name, .. } => {
-                if name.local_name == kf::META_TAG {
-                    break;
-                }
-            }
+            XmlEvent::EndElement { name, .. } if name.local_name == kf::META_TAG => break,
             _ => {}
         }
     }
@@ -131,11 +123,7 @@ fn read_xml_key<R: Read>(reader: &mut EventReader<R>) -> Result<SecStr> {
                     opt_key = Some(SecStr::new(xml::read_binary(reader)?));
                 }
             }
-            XmlEvent::EndElement { name, .. } => {
-                if name.local_name == kf::KEY_TAG {
-                    break;
-                }
-            }
+            XmlEvent::EndElement { name, .. } if name.local_name == kf::KEY_TAG => break,
             _ => {}
         }
     }

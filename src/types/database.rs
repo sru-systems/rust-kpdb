@@ -19,6 +19,7 @@ use super::entry_uuid::EntryUuid;
 use super::error::Error;
 use super::group::Group;
 use super::group_uuid::GroupUuid;
+use super::kdf_config::KdfConfig;
 use super::master_cipher::MasterCipher;
 use super::result::Result;
 use super::stream_cipher::StreamCipher;
@@ -26,8 +27,9 @@ use super::string_value::StringValue;
 use super::transform_rounds::TransformRounds;
 use super::version::Version;
 use crate::common;
-use crate::format::{kdb2_reader, kdb2_writer};
+use crate::format::{kdb2_reader, kdb2_writer, kdb4_reader, kdb4_writer};
 use crate::io::{Log, LogReader, LogWriter};
+use byteorder::{LittleEndian, ReadBytesExt};
 use chrono::{DateTime, Utc};
 use std::io::{Read, Write};
 
@@ -54,6 +56,9 @@ pub struct Database {
 
     /// Number of times the composite key must be transformed.
     pub transform_rounds: TransformRounds,
+
+    /// The configuration of the key derivation function.
+    pub kdf: KdfConfig,
 
     /// The database version.
     pub version: Version,
@@ -168,6 +173,7 @@ impl Database {
             master_cipher: MasterCipher::Aes256,
             stream_cipher: StreamCipher::Salsa20,
             transform_rounds: TransformRounds(10000),
+            kdf: KdfConfig::AesKdf,
             version: Version::new_kdb2(),
             binaries: BinariesMap::new(),
             color: None,
@@ -227,7 +233,7 @@ impl Database {
     /// let result = db.find_entries("gmail");
     /// assert_eq!(result.len(), 0);
     /// ```
-    pub fn find_entries<'a, S: Into<String>>(&'a self, text: S) -> Vec<&'a Entry> {
+    pub fn find_entries<S: Into<String>>(&self, text: S) -> Vec<&Entry> {
         let mut list = Vec::new();
         let text = &text.into().to_lowercase();
         for group in self.root_group.iter() {
@@ -262,7 +268,7 @@ impl Database {
     /// let result = db.find_entries_mut("Protonm");
     /// assert_eq!(result.len(), 1);
     /// ```
-    pub fn find_entries_mut<'a, S: Into<String>>(&'a mut self, text: S) -> Vec<&'a mut Entry> {
+    pub fn find_entries_mut<S: Into<String>>(&mut self, text: S) -> Vec<&mut Entry> {
         let mut list = Vec::new();
         let text = &text.into().to_lowercase();
         for group in self.root_group.iter_mut() {
@@ -340,7 +346,7 @@ impl Database {
     /// db.root_group.add_entry(entry.clone());
     /// assert_eq!(db.get_entry(entry_uuid), Some(&entry));
     /// ```
-    pub fn get_entry<'a>(&'a self, uuid: EntryUuid) -> Option<&'a Entry> {
+    pub fn get_entry(&self, uuid: EntryUuid) -> Option<&Entry> {
         for group in self.root_group.iter() {
             for entry in group.entries.iter() {
                 if entry.uuid == uuid {
@@ -367,7 +373,7 @@ impl Database {
     /// db.root_group.add_entry(entry.clone());
     /// assert_eq!(db.get_entry_mut(entry_uuid), Some(&mut entry));
     /// ```
-    pub fn get_entry_mut<'a>(&'a mut self, uuid: EntryUuid) -> Option<&'a mut Entry> {
+    pub fn get_entry_mut(&mut self, uuid: EntryUuid) -> Option<&mut Entry> {
         for group in self.root_group.iter_mut() {
             for entry in group.entries.iter_mut() {
                 if entry.uuid == uuid {
@@ -394,7 +400,7 @@ impl Database {
     /// db.root_group.add_group(group.clone());
     /// assert_eq!(db.get_group(group_uuid), Some(&group));
     /// ```
-    pub fn get_group<'a>(&'a self, uuid: GroupUuid) -> Option<&'a Group> {
+    pub fn get_group(&self, uuid: GroupUuid) -> Option<&Group> {
         self.root_group.iter().find(|g| g.uuid == uuid)
     }
 
@@ -414,7 +420,7 @@ impl Database {
     /// db.root_group.add_group(group.clone());
     /// assert_eq!(db.get_group_mut(group_uuid), Some(&mut group));
     /// ```
-    pub fn get_group_mut<'a>(&'a mut self, uuid: GroupUuid) -> Option<&'a mut Group> {
+    pub fn get_group_mut(&mut self, uuid: GroupUuid) -> Option<&mut Group> {
         self.root_group.iter_mut().find(|g| g.uuid == uuid)
     }
 
@@ -436,20 +442,23 @@ impl Database {
     /// ```
     pub fn open<R: Read>(reader: &mut R, key: &CompositeKey) -> Result<Database> {
         let mut reader = LogReader::new(reader);
-        let mut buffer = [0u8; 4];
-
-        reader.read(&mut buffer)?;
-        if buffer != common::DB_SIGNATURE {
-            return Err(Error::InvalidDbSignature(buffer));
+        let mut sig_buffer = [0u8; 4];
+        reader.read_exact(&mut sig_buffer)?;
+        if sig_buffer != common::DB_SIGNATURE {
+            return Err(Error::InvalidDbSignature(sig_buffer));
         }
 
-        reader.read(&mut buffer)?;
-        if buffer == common::KDB1_SIGNATURE {
-            return Err(Error::UnhandledDbType(buffer));
-        } else if buffer == common::KDB2_SIGNATURE {
-            Database::open_kdb2(&mut reader, key)
+        let mut ver_buffer = [0u8; 4];
+        reader.read_exact(&mut ver_buffer)?;
+        if ver_buffer == common::KDB2_SIGNATURE {
+            let version = read_version(&mut reader)?;
+            match version.major {
+                3 => Database::open_kdb2(&mut reader, key, version),
+                4 => Database::open_kdb4(&mut reader, key, version),
+                _ => Err(Error::UnhandledDbType(ver_buffer)),
+            }
         } else {
-            return Err(Error::UnhandledDbType(buffer));
+            Err(Error::UnhandledDbType(ver_buffer))
         }
     }
 
@@ -475,19 +484,37 @@ impl Database {
         let mut writer = LogWriter::new(writer);
         match self.db_type {
             DbType::Kdb1 => Err(Error::Unimplemented(String::from("KeePass v1 not supported"))),
-            DbType::Kdb2 => kdb2_writer::write(&mut writer, self),
+            DbType::Kdb2 => {
+                if self.version.major != common::KDB2_MAJOR_VERSION {
+                    Err(Error::Unimplemented(String::from(
+                        "KDBX4 format version for a kdb2 database",
+                    )))
+                } else {
+                    kdb2_writer::write(&mut writer, self)
+                }
+            }
+            DbType::Kdb4 => {
+                if self.version.major != common::KDB4_MAJOR_VERSION {
+                    Err(Error::Unimplemented(String::from(
+                        "Non-KDBX4 format version for a kdb4 database",
+                    )))
+                } else {
+                    kdb4_writer::write(&mut writer, self)
+                }
+            }
         }
     }
 
-    fn open_kdb2<R: Log + Read>(reader: &mut R, key: &CompositeKey) -> Result<Database> {
-        let (meta_data, xml_data) = kdb2_reader::read(reader, key)?;
-        match xml_data.header_hash {
-            Some(header_hash) => {
-                if meta_data.header_hash != header_hash {
-                    return Err(Error::InvalidHeaderHash);
-                }
+    fn open_kdb2<R: Log + Read>(
+        reader: &mut R,
+        key: &CompositeKey,
+        version: Version,
+    ) -> Result<Database> {
+        let (meta_data, xml_data) = kdb2_reader::read(reader, key, version)?;
+        if let Some(header_hash) = xml_data.header_hash {
+            if meta_data.header_hash != header_hash {
+                return Err(Error::InvalidHeaderHash);
             }
-            None => {}
         }
 
         let root_group = match xml_data.root_group {
@@ -503,6 +530,7 @@ impl Database {
             master_cipher: meta_data.master_cipher,
             stream_cipher: meta_data.stream_cipher,
             transform_rounds: meta_data.transform_rounds,
+            kdf: meta_data.kdf,
             version: meta_data.version,
 
             binaries: xml_data.binaries,
@@ -534,11 +562,80 @@ impl Database {
             recycle_bin_changed: xml_data.recycle_bin_changed,
             recycle_bin_enabled: xml_data.recycle_bin_enabled,
             recycle_bin_uuid: xml_data.recycle_bin_uuid,
-            root_group: root_group,
+            root_group,
         };
 
         Ok(db)
     }
+
+    fn open_kdb4<R: Log + Read>(
+        reader: &mut R,
+        key: &CompositeKey,
+        version: Version,
+    ) -> Result<Database> {
+        let (meta_data, xml_data) = kdb4_reader::read(reader, key, version)?;
+        if let Some(header_hash) = xml_data.header_hash {
+            if meta_data.header_hash != header_hash {
+                return Err(Error::InvalidHeaderHash);
+            }
+        }
+
+        let root_group = match xml_data.root_group {
+            Some(group) => group,
+            None => Group::new(common::ROOT_GROUP_NAME),
+        };
+
+        let db = Database {
+            comment: meta_data.comment,
+            composite_key: key.clone(),
+            compression: meta_data.compression,
+            db_type: DbType::Kdb4,
+            master_cipher: meta_data.master_cipher,
+            stream_cipher: meta_data.stream_cipher,
+            transform_rounds: meta_data.transform_rounds,
+            kdf: meta_data.kdf,
+            version: meta_data.version,
+
+            binaries: xml_data.binaries,
+            color: xml_data.color,
+            custom_data: xml_data.custom_data,
+            custom_icons: xml_data.custom_icons,
+            def_username: xml_data.def_username,
+            def_username_changed: xml_data.def_username_changed,
+            description: xml_data.description,
+            description_changed: xml_data.description_changed,
+            entry_templates_group_changed: xml_data.entry_templates_group_changed,
+            entry_templates_group_uuid: xml_data.entry_templates_group_uuid,
+            generator: xml_data.generator,
+            history_max_items: xml_data.history_max_items,
+            history_max_size: xml_data.history_max_size,
+            last_selected_group: xml_data.last_selected_group,
+            last_top_visible_group: xml_data.last_top_visible_group,
+            maintenance_history_days: xml_data.maintenance_history_days,
+            master_key_change_force: xml_data.master_key_change_force,
+            master_key_change_rec: xml_data.master_key_change_rec,
+            master_key_changed: xml_data.master_key_changed,
+            name: xml_data.name,
+            name_changed: xml_data.name_changed,
+            protect_notes: xml_data.protect_notes,
+            protect_password: xml_data.protect_password,
+            protect_title: xml_data.protect_title,
+            protect_url: xml_data.protect_url,
+            protect_username: xml_data.protect_username,
+            recycle_bin_changed: xml_data.recycle_bin_changed,
+            recycle_bin_enabled: xml_data.recycle_bin_enabled,
+            recycle_bin_uuid: xml_data.recycle_bin_uuid,
+            root_group,
+        };
+
+        Ok(db)
+    }
+}
+
+fn read_version<R: Read>(reader: &mut R) -> Result<Version> {
+    let minor = reader.read_u16::<LittleEndian>()?;
+    let major = reader.read_u16::<LittleEndian>()?;
+    Ok(Version { major, minor })
 }
 
 fn entry_contains_string(entry: &Entry, name: &String) -> bool {
@@ -566,6 +663,7 @@ mod tests {
     use crate::types::CustomIconsMap;
     use crate::types::DbType;
     use crate::types::GroupUuid;
+    use crate::types::KdfConfig;
     use crate::types::MasterCipher;
     use crate::types::StreamCipher;
     use crate::types::TransformRounds;
@@ -585,6 +683,7 @@ mod tests {
         assert_eq!(db.master_cipher, MasterCipher::Aes256);
         assert_eq!(db.stream_cipher, StreamCipher::Salsa20);
         assert_eq!(db.transform_rounds, TransformRounds(10000));
+        assert_eq!(db.kdf, KdfConfig::AesKdf);
         assert_eq!(db.version, Version::new_kdb2());
         assert_eq!(db.binaries, BinariesMap::new());
         assert_eq!(db.color, None);
@@ -607,13 +706,13 @@ mod tests {
         assert!(approx_equal_datetime(db.master_key_changed, now));
         assert_eq!(db.name, "");
         assert!(approx_equal_datetime(db.name_changed, now));
-        assert_eq!(db.protect_notes, false);
-        assert_eq!(db.protect_password, true);
-        assert_eq!(db.protect_title, false);
-        assert_eq!(db.protect_url, false);
-        assert_eq!(db.protect_username, false);
+        assert!(!db.protect_notes);
+        assert!(db.protect_password);
+        assert!(!db.protect_title);
+        assert!(!db.protect_url);
+        assert!(!db.protect_username);
         assert!(approx_equal_datetime(db.recycle_bin_changed, now));
-        assert_eq!(db.recycle_bin_enabled, true);
+        assert!(db.recycle_bin_enabled);
         assert_eq!(db.recycle_bin_uuid, GroupUuid::nil());
         assert!(db.root_group.uuid != GroupUuid::nil());
     }
